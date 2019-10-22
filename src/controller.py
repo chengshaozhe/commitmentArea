@@ -1,7 +1,6 @@
 import numpy as np
 import pygame as pg
 import random
-import Visualization
 
 
 def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):

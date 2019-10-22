@@ -3,9 +3,6 @@ import pygame as pg
 from pygame import time
 import collections as co
 import pickle
-from Visualization import DrawBackground, DrawNewState, DrawImage
-from Controller import HumanController, ModelController
-import UpdateWorld
 import random
 
 
@@ -77,7 +74,7 @@ class NormalTrial():
             goal = inferGoal(trajectory[-1], aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)
             stepCount = stepCount + 1
-            noisePlayerGrid, aimAction = self.normalNoise(trajectory[-1], aimAction, trajectory, noiseStep, stepCount)
+            noisePlayerGrid, realAction = self.normalNoise(trajectory[-1], aimAction, trajectory, noiseStep, stepCount)
             realPlayerGrid = self.checkBoundary(noisePlayerGrid)
             self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
             # pg.time.delay(1000)
@@ -176,6 +173,9 @@ class SpecialTrial():
 
 
 def main():
+    import UpdateWorld
+    from Visualization import DrawBackground, DrawNewState, DrawImage
+    from Controller import HumanController, ModelController
     dimension = 21
     bounds = [0, 0, dimension - 1, dimension - 1]
     minDistanceBetweenGrids = 5

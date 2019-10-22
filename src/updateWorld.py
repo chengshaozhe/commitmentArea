@@ -4,6 +4,26 @@ from math import floor
 import itertools as it
 
 
+def creatRect(coor1, coor2):
+    vector = np.array(list(zip(coor1, coor2)))
+    vector.sort(axis=1)
+    rect = [(i, j) for i in range(vector[0][0], vector[0][1] + 1) for j in range(vector[1][0], vector[1][1] + 1)]
+    return rect
+
+
+def calculateAvoidCommitmnetZone(playerGrid, target1, target2):
+    dis1 = np.linalg.norm(np.array(playerGrid) - np.array(target1), ord=1)
+    dis2 = np.linalg.norm(np.array(playerGrid) - np.array(target2), ord=1)
+    if dis1 == dis2:
+        rect1 = creatRect(playerGrid, target1)
+        rect2 = creatRect(playerGrid, target2)
+        avoidCommitmentZone = list(set(rect1).intersection(set(rect2)))
+        avoidCommitmentZone.remove(tuple(playerGrid))
+    else:
+        avoidCommitmentZone = []
+    return avoidCommitmentZone
+
+
 class UpdateWorld():
     def __init__(self, direction, dimension):
         self.direction = direction
@@ -48,7 +68,7 @@ def createShapeDesignValue(width, height, distance):
 
 
 def main():
-    pass
+    print(calculateAvoidCommitmnetZone((5, 5), (3, 5), (7, 5)))
 
 
 if __name__ == "__main__":
