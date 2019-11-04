@@ -156,7 +156,8 @@ class SamplePositionFromCondition:
             dis1 = np.linalg.norm(np.array(playerGrid) - np.array(target1), ord=1)
             dis2 = np.linalg.norm(np.array(playerGrid) - np.array(target2), ord=1)
             minDis = min(dis1, dis2)
-            chooseConditionDF = {'minDis': minDis, 'distanceDiff': 0}
+            avoidCommitmentZone = len(calculateAvoidCommitmnetZone(playerGrid, target1, target2))
+            chooseConditionDF = {'areaType': 'expRect', 'playerGrid': str(playerGrid), 'target1': str(target1), 'target2': str(target2), 'minDis': minDis, 'distanceDiff': 0, 'avoidCommitmentZone': avoidCommitmentZone, 'intentionedDisToTargetMin': self.expDesignValues[self.index][2], 'distanceDiff': 0}
             self.index += 1
         else:
             conditionDf = self.df[(self.df['areaType'] == condition.areaType) & (self.df['avoidCommitmentZone'].isin(condition.areaSize)) & (self.df['distanceDiff'].isin(condition.distanceDiff)) & (self.df['minDis'].isin(condition.minDis)) & (self.df['intentionedDisToTargetMin'].isin(condition.intentionedDisToTarget))]

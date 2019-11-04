@@ -97,12 +97,6 @@ class NormalTrial():
             pause = self.checkTerminationOfTrial(bean1Grid, bean2Grid, realPlayerGrid)
         pg.time.wait(500)
         pg.event.set_blocked([pg.KEYDOWN, pg.KEYUP])
-        results["bean1GridX"] = bean1Grid[0]
-        results["bean1GridY"] = bean1Grid[1]
-        results["bean2GridX"] = bean2Grid[0]
-        results["bean2GridY"] = bean2Grid[1]
-        results["playerGridX"] = initialPlayerGrid[0]
-        results["playerGridY"] = initialPlayerGrid[1]
         results["reactionTime"] = str(reactionTime)
         results["trajectory"] = str(trajectory)
         results["aimAction"] = str(aimActionList)
@@ -170,12 +164,6 @@ class SpecialTrial():
 
         pg.time.wait(500)
         pg.event.set_blocked([pg.KEYDOWN, pg.KEYUP])
-        results["bean1GridX"] = bean1Grid[0]
-        results["bean1GridY"] = bean1Grid[1]
-        results["bean2GridX"] = bean2Grid[0]
-        results["bean2GridY"] = bean2Grid[1]
-        results["playerGridX"] = initialPlayerGrid[0]
-        results["playerGridY"] = initialPlayerGrid[1]
         results["reactionTime"] = str(reactionTime)
         results["trajectory"] = str(trajectory)
         results["aimAction"] = str(aimActionList)

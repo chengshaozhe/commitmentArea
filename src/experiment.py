@@ -11,19 +11,27 @@ class Experiment():
 
     def __call__(self, noiseDesignValues, conditionList):
         for trialIndex, condition in enumerate(conditionList):
-            playerGrid, bean1Grid, bean2Grid, direction = self.samplePositionFromCondition(condition)
+            playerGrid, bean1Grid, bean2Grid, chooseConditionDF = self.samplePositionFromCondition(condition)
             if isinstance(noiseDesignValues[trialIndex], int):
                 results = self.normalTrial(bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
             else:
                 results = self.specialTrial(bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
 
-            # results["noiseNumber"] = noiseDesignValues[trialIndex]
-            # results["width"] = shapeDesignValues[trialIndex][0]
-            # results["height"] = shapeDesignValues[trialIndex][1]
-            # results["direction"] = direction
-            # response = self.experimentValues.copy()
-            # response.update(results)
-            # self.writer(response, trialIndex)
+            print(chooseConditionDF)
+            results["noiseNumber"] = noiseDesignValues[trialIndex]
+            results["playerGrid"] = chooseConditionDF['playerGrid']
+            results["target1"] = chooseConditionDF['target1']
+            results["target2"] = chooseConditionDF['target2']
+            results["areaType"] = chooseConditionDF['areaType']
+            results["distanceDiff"] = chooseConditionDF['distanceDiff']
+            results["minDis"] = chooseConditionDF['minDis']
+            results["intentionedDisToTargetMin"] = chooseConditionDF['intentionedDisToTargetMin']
+            results["avoidCommitmentZone"] = chooseConditionDF['avoidCommitmentZone']
+
+            # results.update(chooseConditionDF)
+            response = self.experimentValues.copy()
+            response.update(results)
+            self.writer(response, trialIndex)
 
 
 if __name__ == "__main__":

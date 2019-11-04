@@ -33,7 +33,6 @@ def main():
     height = [3, 4, 5]
     intentionDis = [2, 4, 6]
     direction = [45, 135, 225, 315]
-    gridSize = 15
 
     expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
     random.shuffle(expDesignValues)
@@ -86,7 +85,7 @@ def main():
     experimentValues = co.OrderedDict()
     # experimentValues["name"] = input("Please enter your name:").capitalize()
     experimentValues["name"] = 'test'
-    writerPath = resultsPath + experimentValues["name"] + '.csv'
+    writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
     writer = WriteDataFrameToCSV(writerPath)
     introductionImage = pg.image.load(os.path.join(picturePath, 'introduction.png'))
     finishImage = pg.image.load(os.path.join(picturePath, 'finish.png'))
@@ -101,14 +100,13 @@ def main():
     # softmaxBeta = -1
     # modelController = ModelController(policy, gridSize, softmaxBeta)
 
-    noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
-
     pygameActionDict = {pg.K_UP: (0, -1), pg.K_DOWN: (0, 1), pg.K_LEFT: (-1, 0), pg.K_RIGHT: (1, 0)}
-
     humanController = HumanController(pygameActionDict)
-    checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     controller = humanController
+
+    checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     actionSpace = list(pygameActionDict.values())
+    noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     awayFromTheGoalNoise = AwayFromTheGoalNoise(actionSpace, gridSize)
     normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)

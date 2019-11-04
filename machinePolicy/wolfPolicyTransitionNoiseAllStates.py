@@ -310,7 +310,7 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 
 
 if __name__ == '__main__':
-    env = GridWorld("test", nx=3, ny=3)
+    env = GridWorld("test", nx=15, ny=15)
     PI_merge = {}
     Q_merge = {}
 
@@ -349,7 +349,7 @@ if __name__ == '__main__':
         mode = 0.9
         transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        noise = 1 - mode
+        noise = 0.1
         # transition_function = ft.partial(
         #     grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
