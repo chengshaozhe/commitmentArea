@@ -35,6 +35,7 @@ def main():
     direction = [45, 135, 225, 315]
 
     expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
+    expDesignValues.append(random.choice(expDesignValues))
     random.shuffle(expDesignValues)
     numExpTrial = len(expDesignValues)
 
@@ -57,12 +58,11 @@ def main():
     numControlTrial = int(numExpTrial * 2 / 3)
     expTrials = [expCondition] * numExpTrial
     random.shuffle(expTrials)
-    conditionList = list(expTrials + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
+    conditionList = list(expTrials[:-1] + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
     random.shuffle(conditionList)
     numNormalTrials = len(conditionList)
 
-    specialTrialDesign = random.choice(expDesignValues)
-    conditionList.append(specialTrialDesign)
+    conditionList.append(expCondition)
 
     blockNumber = int(numNormalTrials / 3)
     noiseDesignValues = np.array([random.choice(noiseCondition) for _ in range(blockNumber)]).flatten().tolist()
