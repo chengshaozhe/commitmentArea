@@ -36,17 +36,18 @@ def calculateSoftmaxProbability(probabilityList, beita):
 
 
 class NormalNoise():
-    def __init__(self, controller):
-        self.actionSpace = controller.actionSpace
-        self.gridSize = controller.gridSize
+    def __init__(self, actionSpace, gridSize):
+        self.actionSpace = actionSpace
+        self.gridSize = gridSize
 
-    def __call__(self, playerGrid, action, trajectory, noiseStep, stepCount):
+    def __call__(self, playerGrid, action, noiseStep, stepCount):
         if stepCount in noiseStep:
-            actionSpace = self.actionSpace.copy()
-            actionSpace.remove(action)
-            actionList = [str(action) for action in actionSpace]
-            actionStr = np.random.choice(actionList)
-            realAction = eval(actionStr)
+            # actionSpace = self.actionSpace.copy()
+            # actionSpace.remove(action)
+            # actionList = [str(action) for action in actionSpace]
+            # actionStr = np.random.choice(actionList)
+            # realAction = eval(actionStr)
+            realAction = random.choice(self.actionSpace)
         else:
             realAction = action
         realPlayerGrid = tuple(np.add(playerGrid, realAction))
@@ -55,8 +56,7 @@ class NormalNoise():
 
 def selectActionMinDistanceFromTarget(goal, playerGrid, bean1Grid, bean2Grid, actionSpace):
     allPosiibilePlayerGrid = [np.add(playerGrid, action) for action in actionSpace]
-    allActionGoal = [inferGoal(playerGrid, possibleGrid, bean1Grid, bean2Grid) for possibleGrid in
-                     allPosiibilePlayerGrid]
+    allActionGoal = [inferGoal(playerGrid, possibleGrid, bean1Grid, bean2Grid) for possibleGrid in allPosiibilePlayerGrid]
     if goal == 1:
         realActionIndex = allActionGoal.index(2)
     else:
@@ -65,10 +65,20 @@ def selectActionMinDistanceFromTarget(goal, playerGrid, bean1Grid, bean2Grid, ac
     return realAction
 
 
+def backToZoneNoise(playerGrid, trajectory, zone, noiseStep, firstIntentionFlag):
+    realPlayerGrid = None
+
+    if playerGrid not in zone and tuple(trajectory[-2]) in zone and not firstIntentionFlag:
+        realPlayerGrid = trajectory[-3]
+        noiseStep = len(trajectory)
+        firstIntentionFlag = True
+    return realPlayerGrid, noiseStep, firstIntentionFlag
+
+
 class AwayFromTheGoalNoise():
-    def __init__(self, controller):
-        self.actionSpace = controller.actionSpace
-        self.gridSize = controller.gridSize
+    def __init__(self, actionSpace, gridSize):
+        self.actionSpace = actionSpace
+        self.gridSize = gridSize
 
     def __call__(self, playerGrid, bean1Grid, bean2Grid, action, goal, firstIntentionFlag, noiseStep, stepCount):
         if goal != 0 and not firstIntentionFlag:
@@ -82,10 +92,8 @@ class AwayFromTheGoalNoise():
 
 
 class HumanController():
-    def __init__(self, gridSize):
-        self.actionDict = {pg.K_UP: (0, -1), pg.K_DOWN: (0, 1), pg.K_LEFT: (-1, 0), pg.K_RIGHT: (1, 0)}
-        self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
-        self.gridSize = gridSize
+    def __init__(self, actionDict):
+        self.actionDict = actionDict
 
     def __call__(self, playerGrid, targetGrid1, targetGrid2):
         action = [0, 0]

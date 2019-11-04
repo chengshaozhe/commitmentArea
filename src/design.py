@@ -1,7 +1,8 @@
 import numpy as np
 import random
-from visualization import DrawBackground, DrawNewState, DrawImage, DrawText
 import itertools as it
+
+from src.visualization import DrawBackground, DrawNewState, DrawImage, DrawText
 
 
 def calculateIncludedAngle(vector1, vector2):
@@ -40,7 +41,6 @@ def findQuadrant(vector):
 
 #         elif direction == 90:
 #         else:
-
 #         return pacmanPosition, bean1Position, bean2Position, direction
 
 
@@ -132,7 +132,7 @@ def isZoneALine(zone):
 def createNoiseDesignValue(condition, blockNumber):
     noiseDesignValuesIndex = random.sample(list(range(len(condition))), blockNumber)
     noiseDesignValues = np.array(condition)[noiseDesignValuesIndex].flatten().tolist()
-    noiseDesignValues.append('special')
+    noiseDesignValues[-1] = 'special'
     return noiseDesignValues
 
 
@@ -143,19 +143,40 @@ def createExpDesignValue(width, height, distance):
     return shapeDesignValues
 
 
-def createControlDesignValue(areaType, distanceDiff):
+class SamplePositionFromCondition:
+    def __init__(self, df, createExpCondition, expDesignValues):
+        self.df = df
+        self.createExpCondition = createExpCondition
+        self.expDesignValues = expDesignValues
+        self.index = 0
 
-    return controlDesignValue
+    def __call__(self, condition):
+        if condition.name == 'expCondition':
+            playerGrid, target1, target2, direction = self.createExpCondition(self.expDesignValues[self.index][0], self.expDesignValues[self.index][1], self.expDesignValues[self.index][2])
+            dis1 = np.linalg.norm(np.array(playerGrid) - np.array(target1), ord=1)
+            dis2 = np.linalg.norm(np.array(playerGrid) - np.array(target2), ord=1)
+            minDis = min(dis1, dis2)
+            chooseConditionDF = {'minDis': minDis, 'distanceDiff': 0}
+            self.index += 1
+        else:
+            conditionDf = self.df[(self.df['areaType'] == condition.areaType) & (self.df['avoidCommitmentZone'].isin(condition.areaSize)) & (self.df['distanceDiff'].isin(condition.distanceDiff)) & (self.df['minDis'].isin(condition.minDis)) & (self.df['intentionedDisToTargetMin'].isin(condition.intentionedDisToTarget))]
+            choosenIndex = random.choice(conditionDf.index)
+            chooseConditionDF = conditionDf.loc[choosenIndex]
+
+            positionDf = conditionDf[['playerGrid', 'target1', 'target2']]
+            playerGrid, target1, target2 = [eval(i) for i in positionDf.loc[choosenIndex]]
+        return playerGrid, target1, target2, chooseConditionDF
 
 
 if __name__ == '__main__':
     dimension = 15
     direction = [0, 90, 180, 270]
     import pygame
-    pygame.init()
+    # pygame.init()
     screenWidth = 600
     screenHeight = 600
     screen = pygame.display.set_mode((screenWidth, screenHeight))
+
     leaveEdgeSpace = 2
     lineWidth = 1
     backgroundColor = [205, 255, 204]
@@ -185,37 +206,99 @@ if __name__ == '__main__':
     intentionedDisToTargetList = [2, 4, 6]
     areaSize = [[3, 4, 5, 6], [3, 4, 5, 6]]
 
-    for diff in distanceDiffList:
-        for state in stateAll:
-            playerGrid, target1, target2 = state
-            avoidCommitmentZone, distanceDiff = calculateAvoidCommitmnetZone(playerGrid, target1, target2)
-            dis1 = np.linalg.norm(np.array(playerGrid) - np.array(target1), ord=1)
-            dis2 = np.linalg.norm(np.array(playerGrid) - np.array(target2), ord=1)
-            minDis = min(dis1, dis2)
+    # for diff in distanceDiffList:
+    #     for state in stateAll:
+    #         playerGrid, target1, target2 = state
+    #         avoidCommitmentZone, distanceDiff = calculateAvoidCommitmnetZone(playerGrid, target1, target2)
+    #         dis1 = np.linalg.norm(np.array(playerGrid) - np.array(target1), ord=1)
+    #         dis2 = np.linalg.norm(np.array(playerGrid) - np.array(target2), ord=1)
+    #         minDis = min(dis1, dis2)
 
-            if len(avoidCommitmentZone) > 3 and distanceDiff == diff and minDis > 4 and isZoneALine(avoidCommitmentZone) == True:
-                df = df.append(pd.DataFrame({'index': [index], 'distanceDiff': distanceDiff, 'playerGrid': [playerGrid], 'target1': [target1], 'target2': [target2]}))
-                index += 1
+    #         if len(avoidCommitmentZone) > 3 and distanceDiff == diff and minDis > 4 and isZoneALine(avoidCommitmentZone) == True:
+    #             df = df.append(pd.DataFrame({'index': [index], 'distanceDiff': distanceDiff, 'playerGrid': [playerGrid], 'target1': [target1], 'target2': [target2]}))
+    #             index += 1
 
-                fileName =
-    df.to_csv('NoAvoidCommitmentZone.csv')
+    # df.to_csv('NoAvoidCommitmentZone.csv')
 
-    # pause = True
-    # while pause:
-    #     drawNewState(target1, target2, playerGrid)
-    #     for event in pygame.event.get():
-    #         if event.type == pygame.KEYDOWN:
-    #             pause = False
-    # pygame.quit()
-
+    # intentionedDisToTarget = minDis - areaSize
+    distanceDiffList = [0, 2, 4]
+    minDisList = range(5, 15)
+    intentionedDisToTargetList = [2, 4, 6]
+    rectAreaSize = [6, 8, 10, 12, 14, 16, 18, 20, 25, 30, 36]
+    lineAreaSize = [4, 5, 6, 7, 8, 9, 10]
     from collections import namedtuple
-    condition = namedtuple('condition', 'name areaType distanceDiff areaSize intentionedDisToTarget')
+    condition = namedtuple('condition', 'name areaType distanceDiff minDis areaSize intentionedDisToTarget')
 
-    expCondition = condition(name='expCondition', areaType='rect', distanceDiff=[0], areaSize=[[3, 4, 5, 6], [3, 4, 5, 6]], intentionedDisToTarget=[2, 4, 6])
+    expCondition = condition(name='expCondition', areaType='rect', distanceDiff=[0], minDis=minDisList, areaSize=rectAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
 
-    rectCondition = condition(name='control', areaType='rect', distanceDiff=[2, 4], areaSize=[[3, 4, 5, 6], [3, 4, 5, 6]], intentionedDisToTarget=[2, 4, 6])
-    straightLineCondition = condition(name='control', areaType='line', distanceDiff=[0, 2, 4], areaSize=[3, 4, 5, 6, 7, 8], intentionedDisToTarget=[2, 4, 6])
-    midLineCondition = condition(name='control', areaType='line', distanceDiff=[0, 2, 4], areaSize=[3, 4, 5, 6, 7, 8], intentionedDisToTarget=[2, 4, 6])
-    noAreaCondition = condition(name='control', areaType='none', distanceDiff=[0, 2, 4], areaSize=[3, 4, 5, 6, 7, 8], intentionedDisToTarget=[2, 4, 6])
+    rectCondition = condition(name='controlRect', areaType='rect', distanceDiff=[2, 4], minDis=minDisList, areaSize=rectAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
+    straightLineCondition = condition(name='straightLine', areaType='straightLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
+    midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
+    noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    print(noAreaCondition.areaSize)
+    import os
+    import pandas as pd
+    picturePath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'conditionData'))
+    df = pd.read_csv(os.path.join(picturePath, 'DesignConditionForAvoidCommitmentZone.csv'))
+    df['intentionedDisToTargetMin'] = df.apply(lambda x: x['minDis'] - x['avoidCommitmentZone'], axis=1)
+    # print(df.head())
+    # df.to_csv('condition.csv')
+
+    width = [3, 4, 5]
+    height = [3, 4, 5]
+    intentionDis = [2, 4, 6]
+    direction = [45, 135, 225, 315]
+    gridSize = 15
+
+    createExpCondition = CreatExpCondition(direction, gridSize)
+    expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
+    random.shuffle(expDesignValues)
+    numExpTrial = len(expDesignValues)
+
+    samplePositionFromCondition = SamplePositionFromCondition(df, createExpCondition, expDesignValues)
+
+    numControlTrial = int(numExpTrial * 2 / 3)
+    conditionList = list([expCondition] * numExpTrial + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
+
+    # conditionList = list([expCondition] * numExpTrial)
+
+    random.shuffle(conditionList)
+    minDisList = []
+    timeStep = 0
+    for index, condition in enumerate(conditionList):
+        print('index:', index + 1)
+        playerGrid, target1, target2, chooseConditionDF = samplePositionFromCondition(condition)
+        minDis = chooseConditionDF['minDis'] + chooseConditionDF['distanceDiff']
+        minDisList.append(minDis)
+        print(condition)
+        print(chooseConditionDF)
+        pause = True
+        pygame.init()
+        saveImage = False
+        saveImageDir = os.path.join(os.path.join(os.path.abspath(os.path.join(os.getcwd(), os.pardir)), 'data'), 'gg')
+        if not os.path.exists(saveImageDir):
+            os.makedirs(saveImageDir)
+        while pause:
+            screen = drawNewState(target1, target2, playerGrid)
+            if saveImage == True:
+                pygame.image.save(screen, saveImageDir + '/' + format(timeStep, '04') + ".png")
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    pause = False
+                    timeStep += 1
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+    pygame.quit()
+    print('minDis:', np.mean(minDisList))
+
+    # for design in expDesignValues:
+    #     playerGrid, target1, target2, direction = createExpCondition(design[0], design[1], design[2])
+    #     pause = True
+    #     while pause:
+    #         drawNewState(target1, target2, playerGrid)
+    #         for event in pygame.event.get():
+    #             if event.type == pygame.KEYDOWN:
+    #                 pause = False
+    #             if event.type == pygame.QUIT:
+    #                 pygame.quit()
+    # pygame.quit()

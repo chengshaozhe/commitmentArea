@@ -48,7 +48,7 @@ class DrawNewState():
         pg.draw.circle(self.screen, self.playerColor, [np.int((playerPosition[0] + self.leaveEdgeSpace + 0.5) * self.widthLineStepSpace),
                                                        np.int((playerPosition[1] + self.leaveEdgeSpace + 0.5) * self.heightLineStepSpace)], self.playerRadius)
         pg.display.flip()
-        return
+        return self.screen
 
 
 class DrawImage():
