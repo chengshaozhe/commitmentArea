@@ -15,7 +15,7 @@ class Experiment():
             if isinstance(noiseDesignValues[trialIndex], int):
                 results = self.normalTrial(bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
             else:
-                results = self.specialTrial(bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
+                results = self.specialTrial(bean1Grid, bean2Grid, playerGrid)
 
             print(chooseConditionDF)
             results["noiseNumber"] = noiseDesignValues[trialIndex]

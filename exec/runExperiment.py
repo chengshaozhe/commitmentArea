@@ -20,8 +20,7 @@ from src.design import CreatExpCondition, SamplePositionFromCondition, createNoi
 
 def main():
     gridSize = 15
-    noiseCondition = list(permutations([1, 2, 0], 3))
-    noiseCondition.append((1, 1, 1))
+
     picturePath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'pictures'))
     resultsPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'results'))
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
@@ -61,9 +60,10 @@ def main():
     conditionList = list(expTrials[:-1] + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
     random.shuffle(conditionList)
     numNormalTrials = len(conditionList)
-
     conditionList.append(expCondition)
 
+    noiseCondition = list(permutations([1, 2, 0], 3))
+    noiseCondition.append((1, 1, 1))
     blockNumber = int(numNormalTrials / 3)
     noiseDesignValues = np.array([random.choice(noiseCondition) for _ in range(blockNumber)]).flatten().tolist()
     noiseDesignValues.append('special')

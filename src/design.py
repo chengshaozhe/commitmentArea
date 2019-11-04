@@ -2,46 +2,10 @@ import numpy as np
 import random
 import itertools as it
 
-from src.visualization import DrawBackground, DrawNewState, DrawImage, DrawText
-
 
 def calculateIncludedAngle(vector1, vector2):
     includedAngle = abs(np.angle(complex(vector1[0], vector1[1]) / complex(vector2[0], vector2[1])))
     return includedAngle
-
-
-def findQuadrant(vector):
-    quadrant = 0
-    if vector[0] > 0 and vector[1] > 0:
-        quadrant = 4
-    elif vector[0] < 0 and vector[1] > 0:
-        quadrant = 1
-    elif vector[0] < 0 and vector[1] < 0:
-        quadrant = 2
-    elif vector[0] > 0 and vector[1] < 0:
-        quadrant = 3
-    else:
-        quadrant = 0
-    return quadrant
-
-
-# class CreatMidLineCondition():
-#     def __init__(self, direction, dimension):
-#         self.direction = direction
-#         self.dimension = dimension
-
-#     def __call__(self, width, height, distanceDiff):
-#         direction = random.choice(self.direction)
-#         distanceDiff = random.choice([distanceDiff, -distanceDiff])
-#         if direction == 0:
-#             pacmanPosition = (floor(self.dimension / 2), random.randint(height, self.dimension - 1))
-#             bean1Position = (pacmanPosition[0] - floor(width / 2), pacmanPosition[1] - height)
-#             bean2Position = (pacmanPosition[0] + floor(width / 2), pacmanPosition[1] - height)
-#         elif direction == 180:
-
-#         elif direction == 90:
-#         else:
-#         return pacmanPosition, bean1Position, bean2Position, direction
 
 
 class CreatStraightLineCondition():
@@ -103,6 +67,11 @@ class CreatExpCondition():
         return pacmanPosition, bean1Position, bean2Position, direction
 
 
+def calculateGridDis(grid1, grid2):
+    gridDis = np.linalg.norm(np.array(grid1) - np.array(grid2), ord=1)
+    return gridDis
+
+
 def creatRect(coor1, coor2):
     vector = np.array(list(zip(coor1, coor2)))
     vector.sort(axis=1)
@@ -111,14 +80,17 @@ def creatRect(coor1, coor2):
 
 
 def calculateAvoidCommitmnetZone(playerGrid, target1, target2):
-    dis1 = np.linalg.norm(np.array(playerGrid) - np.array(target1), ord=1)
-    dis2 = np.linalg.norm(np.array(playerGrid) - np.array(target2), ord=1)
-    distanceDiff = dis1 - dis2
-    rect1 = creatRect(playerGrid, target1)
-    rect2 = creatRect(playerGrid, target2)
-    avoidCommitmentZone = list(set(rect1).intersection(set(rect2)))
-    avoidCommitmentZone.remove(tuple(playerGrid))
-    return avoidCommitmentZone, distanceDiff
+    dis1 = calculateGridDis(playerGrid, target1)
+    dis2 = calculateGridDis(playerGrid, target2)
+    if dis1 == dis2:
+        rect1 = creatRect(playerGrid, target1)
+        rect2 = creatRect(playerGrid, target2)
+        avoidCommitmentZone = list(set(rect1).intersection(set(rect2)))
+        avoidCommitmentZone.remove(tuple(playerGrid))
+    else:
+        avoidCommitmentZone = []
+
+    return avoidCommitmentZone
 
 
 def isZoneALine(zone):
@@ -173,6 +145,7 @@ if __name__ == '__main__':
     dimension = 15
     direction = [0, 90, 180, 270]
     import pygame
+    from src.visualization import DrawBackground, DrawNewState, DrawImage, DrawText
     # pygame.init()
     screenWidth = 600
     screenHeight = 600

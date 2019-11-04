@@ -3,11 +3,16 @@ import pygame as pg
 import random
 
 
+def calculateGridDis(grid1, grid2):
+    gridDis = np.linalg.norm(np.array(grid1) - np.array(grid2), ord=1)
+    return gridDis
+
+
 def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
-    pacmanBean1aimDisplacement = np.linalg.norm(np.array(targetGridA) - np.array(aimGrid), ord=1)
-    pacmanBean2aimDisplacement = np.linalg.norm(np.array(targetGridB) - np.array(aimGrid), ord=1)
-    pacmanBean1LastStepDisplacement = np.linalg.norm(np.array(targetGridA) - np.array(originGrid), ord=1)
-    pacmanBean2LastStepDisplacement = np.linalg.norm(np.array(targetGridB) - np.array(originGrid), ord=1)
+    pacmanBean1aimDisplacement = calculateGridDis(targetGridA, aimGrid)
+    pacmanBean2aimDisplacement = calculateGridDis(targetGridB, aimGrid)
+    pacmanBean1LastStepDisplacement = calculateGridDis(targetGridA，originGrid)
+    pacmanBean2LastStepDisplacement = calculateGridDis(targetGridB，originGrid)
     bean1Goal = pacmanBean1LastStepDisplacement - pacmanBean1aimDisplacement
     bean2Goal = pacmanBean2LastStepDisplacement - pacmanBean2aimDisplacement
     if bean1Goal > bean2Goal:
@@ -17,17 +22,6 @@ def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
     else:
         goal = 0
     return goal
-
-
-def countCertainNumberInList(listToManipulate, certainNumber):
-    count = 0
-    indexList = list()
-    for i in range(len(listToManipulate)):
-        if certainNumber == listToManipulate[i]:
-            count = count + 1
-            indexList.append(i)
-
-    return count, indexList
 
 
 def calculateSoftmaxProbability(probabilityList, beita):
@@ -42,16 +36,39 @@ class NormalNoise():
 
     def __call__(self, playerGrid, action, noiseStep, stepCount):
         if stepCount in noiseStep:
-            # actionSpace = self.actionSpace.copy()
-            # actionSpace.remove(action)
-            # actionList = [str(action) for action in actionSpace]
-            # actionStr = np.random.choice(actionList)
-            # realAction = eval(actionStr)
             realAction = random.choice(self.actionSpace)
         else:
             realAction = action
         realPlayerGrid = tuple(np.add(playerGrid, realAction))
         return realPlayerGrid, realAction
+
+
+class AimActionWithNoise():
+    def __init__(self, actionSpace, gridSize):
+        self.actionSpace = actionSpace
+        self.gridSize = gridSize
+
+    def __call__(self, playerGrid, action, noiseStep, stepCount):
+        if stepCount in noiseStep:
+            actionSpace = self.actionSpace.copy()
+            actionSpace.remove(action)
+            actionList = [str(action) for action in actionSpace]
+            actionStr = np.random.choice(actionList)
+            realAction = eval(actionStr)
+        else:
+            realAction = action
+        realPlayerGrid = tuple(np.add(playerGrid, realAction))
+        return realPlayerGrid, realAction
+
+
+def backToZoneNoise(playerGrid, trajectory, zone, noiseStep, firstIntentionFlag):
+    realPlayerGrid = None
+
+    if playerGrid not in zone and tuple(trajectory[-2]) in zone and not firstIntentionFlag:
+        realPlayerGrid = trajectory[-3]
+        noiseStep = len(trajectory)
+        firstIntentionFlag = True
+    return realPlayerGrid, noiseStep, firstIntentionFlag
 
 
 def selectActionMinDistanceFromTarget(goal, playerGrid, bean1Grid, bean2Grid, actionSpace):
@@ -63,16 +80,6 @@ def selectActionMinDistanceFromTarget(goal, playerGrid, bean1Grid, bean2Grid, ac
         realActionIndex = allActionGoal.index(1)
     realAction = actionSpace[realActionIndex]
     return realAction
-
-
-def backToZoneNoise(playerGrid, trajectory, zone, noiseStep, firstIntentionFlag):
-    realPlayerGrid = None
-
-    if playerGrid not in zone and tuple(trajectory[-2]) in zone and not firstIntentionFlag:
-        realPlayerGrid = trajectory[-3]
-        noiseStep = len(trajectory)
-        firstIntentionFlag = True
-    return realPlayerGrid, noiseStep, firstIntentionFlag
 
 
 class AwayFromTheGoalNoise():
@@ -89,23 +96,6 @@ class AwayFromTheGoalNoise():
             realAction = action
         realPlayerGrid = tuple(np.add(playerGrid, realAction))
         return realPlayerGrid, firstIntentionFlag, noiseStep
-
-
-class HumanController():
-    def __init__(self, actionDict):
-        self.actionDict = actionDict
-
-    def __call__(self, playerGrid, targetGrid1, targetGrid2):
-        action = [0, 0]
-        pause = True
-        while pause:
-            for event in pg.event.get():
-                if event.type == pg.KEYDOWN:
-                    if event.key in self.actionDict.keys():
-                        action = self.actionDict[event.key]
-                        aimePlayerGrid = tuple(np.add(playerGrid, action))
-                        pause = False
-        return aimePlayerGrid, action
 
 
 class CheckBoundary():
@@ -125,6 +115,23 @@ class CheckBoundary():
             adjustedY = self.yMin
         checkedPosition = (adjustedX, adjustedY)
         return checkedPosition
+
+
+class HumanController():
+    def __init__(self, actionDict):
+        self.actionDict = actionDict
+
+    def __call__(self, playerGrid, targetGrid1, targetGrid2):
+        action = [0, 0]
+        pause = True
+        while pause:
+            for event in pg.event.get():
+                if event.type == pg.KEYDOWN:
+                    if event.key in self.actionDict.keys():
+                        action = self.actionDict[event.key]
+                        aimePlayerGrid = tuple(np.add(playerGrid, action))
+                        pause = False
+        return aimePlayerGrid, action
 
 
 class ModelController():
