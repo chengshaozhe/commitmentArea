@@ -30,7 +30,3 @@ class Experiment():
             response = self.experimentValues.copy()
             response.update(results)
             self.writer(response, trialIndex)
-
-
-if __name__ == "__main__":
-    main()
