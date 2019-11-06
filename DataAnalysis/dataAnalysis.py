@@ -47,11 +47,11 @@ if __name__ == '__main__':
     df["firstIntentionConsistFinalGoal"] = df.apply(lambda x: calculateFirstIntentionMatchFinalIntention(x['goal']), axis=1)
     dfNormailTrail = df[df['noiseNumber'] != 'special']
     dfSpecialTrail = df[df['noiseNumber'] == 'special']
-    df.to_csv("statDF.csv")
     statDF['firstIntentionConsistFinalGoalNormal'] = dfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
     statDF['firstIntentionConsistFinalGoalSpecail'] = dfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
     print('mean', np.mean(statDF['firstIntentionConsistFinalGoalNormal']))
     print('mean', np.mean(statDF['firstIntentionConsistFinalGoalSpecail']))
+    # statDF.to_csv("statDF.csv")
 
     frequency = [0.958, 1 - 0.958]
     names = ['consist', 'inconsist']

@@ -11,8 +11,8 @@ def calculateGridDis(grid1, grid2):
 def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
     pacmanBean1aimDisplacement = calculateGridDis(targetGridA, aimGrid)
     pacmanBean2aimDisplacement = calculateGridDis(targetGridB, aimGrid)
-    pacmanBean1LastStepDisplacement = calculateGridDis(targetGridA，originGrid)
-    pacmanBean2LastStepDisplacement = calculateGridDis(targetGridB，originGrid)
+    pacmanBean1LastStepDisplacement = calculateGridDis(targetGridA, originGrid)
+    pacmanBean2LastStepDisplacement = calculateGridDis(targetGridB, originGrid)
     bean1Goal = pacmanBean1LastStepDisplacement - pacmanBean1aimDisplacement
     bean2Goal = pacmanBean2LastStepDisplacement - pacmanBean2aimDisplacement
     if bean1Goal > bean2Goal:
@@ -131,6 +131,8 @@ class HumanController():
                         action = self.actionDict[event.key]
                         aimePlayerGrid = tuple(np.add(playerGrid, action))
                         pause = False
+                    if event.key == pg.K_ESCAPE:
+                        exit()
         return aimePlayerGrid, action
 
 

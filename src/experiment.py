@@ -17,7 +17,6 @@ class Experiment():
             else:
                 results = self.specialTrial(bean1Grid, bean2Grid, playerGrid)
 
-            print(chooseConditionDF)
             results["noiseNumber"] = noiseDesignValues[trialIndex]
             results["playerGrid"] = chooseConditionDF['playerGrid']
             results["target1"] = chooseConditionDF['target1']
@@ -28,7 +27,6 @@ class Experiment():
             results["intentionedDisToTargetMin"] = chooseConditionDF['intentionedDisToTargetMin']
             results["avoidCommitmentZone"] = chooseConditionDF['avoidCommitmentZone']
 
-            # results.update(chooseConditionDF)
             response = self.experimentValues.copy()
             response.update(results)
             self.writer(response, trialIndex)

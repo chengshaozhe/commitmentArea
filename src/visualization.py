@@ -3,6 +3,23 @@ import numpy as np
 import os
 
 
+class InitializeScreen:
+    def __init__(self, screenWidth, screenHeight, fullScreen):
+        self.screenWidth = screenWidth
+        self.screenHeight = screenHeight
+        self.fullScreen = fullScreen
+
+    def __call__(self):
+        pg.init()
+        if self.fullScreen:
+            screen = pg.display.set_mode((self.screenWidth, self.screenHeight), pg.FULLSCREEN)
+        else:
+            screen = pg.display.set_mode((self.screenWidth, self.screenHeight))
+        pg.display.init()
+        pg.fastevent.init()
+        return screen
+
+
 class DrawBackground():
     def __init__(self, screen, gridSize, leaveEdgeSpace, backgroundColor, lineColor, lineWidth, textColorTuple):
         self.screen = screen

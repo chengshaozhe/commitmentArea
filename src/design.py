@@ -101,18 +101,18 @@ def isZoneALine(zone):
         return False
 
 
-def createNoiseDesignValue(condition, blockNumber):
-    noiseDesignValuesIndex = random.sample(list(range(len(condition))), blockNumber)
-    noiseDesignValues = np.array(condition)[noiseDesignValuesIndex].flatten().tolist()
-    noiseDesignValues[-1] = 'special'
+def createNoiseDesignValue(noiseCondition, blockNumber):
+    noiseDesignValues = np.array([random.choice(noiseCondition) for _ in range(blockNumber)]).flatten().tolist()
+    noiseDesignValues.append('special')
+
     return noiseDesignValues
 
 
 def createExpDesignValue(width, height, distance):
-    shapeDesignValues = [[b, h, d] for b in width for h in height for d in distance]
-    random.shuffle(shapeDesignValues)
-    shapeDesignValues.append([random.choice(width), random.choice(height), random.choice(distance)])
-    return shapeDesignValues
+    expDesignValues = [[b, h, d] for b in width for h in height for d in distance]
+    random.shuffle(expDesignValues)
+    expDesignValues.append([random.choice(width), random.choice(height), random.choice(distance)])
+    return expDesignValues
 
 
 class SamplePositionFromCondition:
