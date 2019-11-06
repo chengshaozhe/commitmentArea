@@ -35,7 +35,7 @@ def calculateFirstIntention(intentionList):
 
 
 if __name__ == '__main__':
-    dataPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
+    dataPath = os.path.join(os.path.join(DIRNAME, '..'), 'results/human')
     df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
     # df.to_csv("all.csv")
 
@@ -61,4 +61,4 @@ if __name__ == '__main__':
     plt.ylabel('frequency')
     plt.ylim((0, 1))
     plt.title('firstIntentionPredictFinalGoal NormalTrial')
-    plt.show()
+    # plt.show()

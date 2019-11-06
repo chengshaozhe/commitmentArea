@@ -71,6 +71,22 @@ def backToZoneNoise(playerGrid, trajectory, zone, noiseStep, firstIntentionFlag)
     return realPlayerGrid, noiseStep, firstIntentionFlag
 
 
+class SampleToZoneNoise:
+    def __init__(self, noiseActionSpace):
+        self.noiseActionSpace = noiseActionSpace
+
+    def __call__(self, playerGrid, trajectory, zone, noiseStep, firstIntentionFlag):
+        realPlayerGrid = None
+        if playerGrid not in zone and tuple(trajectory[-2]) in zone and not firstIntentionFlag:
+            possibleGrid = (tuple(np.add(playerGrid, action)) for action in self.noiseActionSpace)
+            realPlayerGrids = list(filter(lambda x: x in zone, possibleGrid))
+            realPlayerGrid = random.choice(realPlayerGrids)
+            print(realPlayerGrids, realPlayerGrid)
+            noiseStep = len(trajectory)
+            firstIntentionFlag = True
+        return realPlayerGrid, noiseStep, firstIntentionFlag
+
+
 def selectActionMinDistanceFromTarget(goal, playerGrid, bean1Grid, bean2Grid, actionSpace):
     allPosiibilePlayerGrid = [np.add(playerGrid, action) for action in actionSpace]
     allActionGoal = [inferGoal(playerGrid, possibleGrid, bean1Grid, bean2Grid) for possibleGrid in allPosiibilePlayerGrid]

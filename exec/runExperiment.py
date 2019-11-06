@@ -12,7 +12,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import HumanController, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise
+from src.controller import HumanController, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise
 from src.trial import NormalTrial, SpecialTrial
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -64,6 +64,12 @@ def main():
     blockNumber = int(numNormalTrials / numTrialsPerBlock)
     noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
+
+# test exp trail
+    # conditionList = [expCondition] * len(conditionList)
+    # noiseDesignValues = ['special'] * len(noiseDesignValues)
+    # print(noiseDesignValues)
+
     screenWidth = 600
     screenHeight = 600
     fullScreen = False
@@ -103,8 +109,9 @@ def main():
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
+    sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
     normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
-    specialTrial = SpecialTrial(controller, drawNewState, drawText, backToZoneNoise, checkBoundary)
+    specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
     experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
 
     drawImage(introductionImage)
