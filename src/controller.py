@@ -81,7 +81,6 @@ class SampleToZoneNoise:
             possibleGrid = (tuple(np.add(playerGrid, action)) for action in self.noiseActionSpace)
             realPlayerGrids = list(filter(lambda x: x in zone, possibleGrid))
             realPlayerGrid = random.choice(realPlayerGrids)
-            print(realPlayerGrids, realPlayerGrid)
             noiseStep = len(trajectory)
             firstIntentionFlag = True
         return realPlayerGrid, noiseStep, firstIntentionFlag
