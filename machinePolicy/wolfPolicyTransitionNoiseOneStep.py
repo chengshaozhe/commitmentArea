@@ -312,9 +312,11 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 if __name__ == '__main__':
     Q_merge = {}
     # PI_merge = co.OrderedDict()
+    gridSize = 15
     numSheeps = 2
-    sheep_state = tuple(it.product(range(env.nx), range(env.ny)))
+    sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
+
 
     # df_path = os.path.dirname(os.path.abspath(__file__)) + '/position.xlsx'
     # df_path = "/Users/chengshaozhe/Downloads/allPosition.csv"
@@ -325,89 +327,92 @@ if __name__ == '__main__':
     #                    (df.bean2PositionX[i], df.bean2PositionY[i]))
     #     sheep_states_all.append(sheep_state)
 
-    t = 0
-    for sheep_states in sheep_states_all:
-        t += 1
-        print(sheep_states)
-        print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
+    for noise in [0,0.1]:
+        t = 0
+        for sheep_states in sheep_states_all:
+            t += 1
+            print(sheep_states)
+            print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
-        env = GridWorld("test", nx=15, ny=15)
-        sheepValue = {s: 100 for s in sheep_states}
-        env.add_feature_map("goal", sheepValue, default=0)
-        env.add_terminals(list(sheep_states))
+            env = GridWorld("test", nx=gridSize, ny=gridSize)
+            sheepValue = {s: 100 for s in sheep_states}
+            env.add_feature_map("goal", sheepValue, default=0)
+            env.add_terminals(list(sheep_states))
 
-        S = tuple(it.product(range(env.nx), range(env.ny)))
+            S = tuple(it.product(range(env.nx), range(env.ny)))
 
-        # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
-        A = ((1, 0), (0, 1), (-1, 0), (0, -1))
+            # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
+            A = ((1, 0), (0, 1), (-1, 0), (0, -1))
 
-        mode = 0.9
-        transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
+            # mode = 1
+            # transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        noise = 0.1
-        # transition_function = ft.partial(
-        #     grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
+            noise = 0.1
+            transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
-        T = {s: {a: transition_function(s, a) for a in A} for s in S}
-        T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
-                             for a in A] for s in S])
+            T = {s: {a: transition_function(s, a) for a in A} for s in S}
+            T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
+                                 for a in A] for s in S])
 
-        """set the reward func"""
-        upper = np.array([env.nx, env.ny])
-        lower = np.array([-1, -1])
+            """set the reward func"""
+            upper = np.array([env.nx, env.ny])
+            lower = np.array([-1, -1])
 
-        barrier_func = ft.partial(signod_barrier, c=0, m=50, s=1)
-        barrier_punish = ft.partial(
-            barrier_punish, barrier_func=barrier_func, upper=upper, lower=lower)
-        # to_wolf_punish = ft.partial(distance_punish, goal=wolf_state, unit=1)
-        to_sheep_reward = ft.partial(
-            distance_mean_reward, goal=sheep_states, unit=1)
-        grid_reward = ft.partial(
-            grid_reward, env=env, const=-1)
+            barrier_func = ft.partial(signod_barrier, c=0, m=50, s=1)
+            barrier_punish = ft.partial(
+                barrier_punish, barrier_func=barrier_func, upper=upper, lower=lower)
+            # to_wolf_punish = ft.partial(distance_punish, goal=wolf_state, unit=1)
+            to_sheep_reward = ft.partial(
+                distance_mean_reward, goal=sheep_states, unit=1)
+            grid_reward = ft.partial(
+                grid_reward, env=env, const=-1)
 
-        func_lst = [grid_reward]
-        reward_func = ft.partial(sum_rewards, func_lst=func_lst)
+            func_lst = [grid_reward]
+            reward_func = ft.partial(sum_rewards, func_lst=func_lst)
 
-        R = {s: {a: reward_func(s, a) for a in A} for s in S}
-        R_arr = np.asarray([[[R[s][a] for s_n in S] for a in A]
-                            for s in S], dtype=float)
+            R = {s: {a: reward_func(s, a) for a in A} for s in S}
+            R_arr = np.asarray([[[R[s][a] for s_n in S] for a in A]
+                                for s in S], dtype=float)
 
-        gamma = 0.9
-        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000)
-        V = value_iteration(S, A, T, R)
-        # print(V)
+            gamma = 0.9
+            value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000)
+            V = value_iteration(S, A, T, R)
+            # print(V)
 
-        V_arr = V_dict_to_array(V)
-        Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
+            V_arr = V_dict_to_array(V)
+            Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
 
-        Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        for wolf_state in S:
-            Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
+            Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+            for wolf_state in S:
+                Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
 
-        Q_merge.update(Q_dict)
+            Q_merge.update(Q_dict)
 
-#viz Q
-        # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        # for wolf_state in S:
-        #     Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
+    #viz Q
+            # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+            # for wolf_state in S:
+            #     Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
 
-        # fig, ax = plt.subplots(1, 1, tight_layout=True)
-        # fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
-        # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
-        # # draw_V(ax, V, S)
-        # prefix = "result" + str(sheep_states) + 'noise' + str(noise)
-        # name = "wolf_".join((prefix, "policy.png"))
-        # module_path = os.path.dirname(os.path.abspath(__file__))
-        # # figure_path = os.path.join(module_path, "figures")
-        # path = os.path.join(module_path, name)
-        # print ("saving policy figure at %s" % path)
-        # plt.savefig(path, dpi=300)
+            # fig, ax = plt.subplots(1, 1, tight_layout=True)
+            # fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
+            # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
+            # # draw_V(ax, V, S)
+            # prefix = "result" + str(sheep_states) + 'noise' + str(noise)
+            # name = "wolf_".join((prefix, "policy.png"))
+            # module_path = os.path.dirname(os.path.abspath(__file__))
+            # # figure_path = os.path.join(module_path, "figures")
+            # path = os.path.join(module_path, name)
+            # print ("saving policy figure at %s" % path)
+            # plt.savefig(path, dpi=300)
 
-        # print (Q_dict)
+            # print (Q_dict)
 
-# save value
-    # print (len(Q_merge))
-    dirName = os.path.dirname(os.path.abspath(__file__))
-    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseTwoStep' + 'Gird' + str(env.nx)
-    pickle_dump_single_result(
-        dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
+    # save value
+        # print (len(Q_merge))
+        dirName = os.path.dirname(os.path.abspath(__file__))
+        prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseOneStep' + 'Gird' + str(env.nx)
+        pickle_dump_single_result(
+            dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
+
+    endTime = time.time()
+    print("Time taken {} seconds".format((endTime - startTime)))
