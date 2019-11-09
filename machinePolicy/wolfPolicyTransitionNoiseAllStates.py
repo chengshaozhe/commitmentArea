@@ -247,7 +247,7 @@ class ValueIteration():
         for i in range(max_iter):
             V = V_init.copy()
             for s in S:
-                V_init[s] = max([sum([p * (R[s_n][a] + gamma * V[s_n])
+                V_init[s] = max([sum([p * (R[s][a] + gamma * V[s_n])
                                       for (s_n, p) in T[s][a].items()]) for a in A])
 
             delta = np.array([V[s] - V_init[s] for s in S])
@@ -310,13 +310,13 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 
 
 if __name__ == '__main__':
-    env = GridWorld("test", nx=15, ny=15)
+    env = GridWorld("test", nx=3, ny=3)
     PI_merge = {}
     Q_merge = {}
 
     # PI_merge = co.OrderedDict()
     sheep_state = tuple(it.product(range(env.nx), range(env.ny)))
-    sheep_states_all = list(it.combinations(sheep_state, 2))
+    sheep_states_all = list(it.combinations(sheep_state, 1))
 
     # df_path = os.path.dirname(os.path.abspath(__file__)) + '/position.xlsx'
     # df_path = "/Users/chengshaozhe/Downloads/allPosition.csv"
@@ -346,7 +346,7 @@ if __name__ == '__main__':
         # A = tuple(it.product(range(-1, 2), range(-1, 2)))
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
 
-        mode = 0.9
+        mode = 1
         transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
         noise = 0.1
@@ -382,7 +382,7 @@ if __name__ == '__main__':
 
         value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000)
         V = value_iteration(S, A, T, R)
-        # print(V)
+        print(V)
 
         V_arr = V_dict_to_array(V)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
@@ -392,20 +392,21 @@ if __name__ == '__main__':
         for wolf_state in S:
             Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
 
-        # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        # for wolf_state in S:
-        #     Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
-        # fig, ax = plt.subplots(1, 1, tight_layout=True)
-        # fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
-        # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
-        # # draw_V(ax, V, S)
-        # prefix = "result" + str(sheep_states) + 'noise' + str(noise)
-        # name = "wolf_".join((prefix, "policy.png"))
-        # module_path = os.path.dirname(os.path.abspath(__file__))
-        # # figure_path = os.path.join(module_path, "figures")
-        # path = os.path.join(module_path, name)
-        # print ("saving policy figure at %s" % path)
-        # plt.savefig(path, dpi=300)
+        Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        for wolf_state in S:
+            Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
+
+        fig, ax = plt.subplots(1, 1, tight_layout=True)
+        fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
+        draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
+        # draw_V(ax, V, S)
+        prefix = "result" + str(sheep_states) + 'noise' + str(noise)
+        name = "wolf_".join((prefix, "policy.png"))
+        module_path = os.path.dirname(os.path.abspath(__file__))
+        # figure_path = os.path.join(module_path, "figures")
+        path = os.path.join(module_path, name)
+        print ("saving policy figure at %s" % path)
+        plt.savefig(path, dpi=300)
 
         Q_merge.update(Q_dict)
 

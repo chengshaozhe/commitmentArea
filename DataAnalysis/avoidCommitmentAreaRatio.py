@@ -64,6 +64,27 @@ def calculateFirstIntentionStep(goalList):
     firstIntentionStep = min(goal1Step, goal2Step)
     return firstIntentionStep
 
+def calculateRatioInNonCommitment(goal):
+    # trajectoryInNonCommitment = 0
+    # trajectoryLength = 0
+    print(goal)
+    ratioInNonCommitmentList = []
+    for i in range(len(goal)):
+        flag = 0
+        trajectoryInNonCommitment = 0
+        trajectoryLength = 0
+        for j in range(len(goal[i])):
+            if goal[i][j] == 1 or goal[i][j] == 2:
+                flag = 1
+            if flag == 0:
+                if goal[i][j] == 0:
+                    trajectoryInNonCommitment = trajectoryInNonCommitment + 1
+            if goal[i][j] == 1 or goal[i][j] == 2 or goal[i][j] == 0:
+                trajectoryLength = trajectoryLength + 1
+        ratioInNonCommitmentList.append(trajectoryInNonCommitment / trajectoryLength)
+    # ratioInNonCommitment = np.mean(ratioInNonCommitmentList)
+    return ratioInNonCommitmentList
+
 
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
@@ -79,6 +100,8 @@ if __name__ == '__main__':
         df['firstIntentionRatio'] = df.apply(lambda x: calculateFirstIntentionRatio(x['trajectory'], x['avoidCommitmentZone']), axis=1)
 
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(x['goal']), axis=1)
+
+        df['firstIntentionRatio'] = df.apply(lambda x: calculateRatioInNonCommitment(x['goal']), axis=1)
 
         # print(df.head(6))
         nubOfSubj = len(df["name"].unique())
