@@ -51,39 +51,41 @@ def main():
     drawNewState = DrawNewState(screen, drawBackground, targetColor, playerColor, targetRadius, playerRadius)
     drawImage = DrawImage(screen)
 
+    width = [3, 4, 5]
+    height = [3, 4, 5]
+    intentionDis = [2, 4, 6]
+    direction = [45, 135, 225, 315]
+
+
+    distanceDiffList = [0, 2, 4]
+    minDisList = range(5, 15)
+    intentionedDisToTargetList = [2, 4, 6]
+    rectAreaSize = [6, 8, 10, 12, 14, 16, 18, 20, 25, 30, 36]
+    lineAreaSize = [4, 5, 6, 7, 8, 9, 10]
+
+    condition = namedtuple('condition', 'name areaType distanceDiff minDis areaSize intentionedDisToTarget')
+
+    expCondition = condition(name='expCondition', areaType='rect', distanceDiff=[0], minDis=minDisList, areaSize=rectAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
+    rectCondition = condition(name='controlRect', areaType='rect', distanceDiff=[2, 4], minDis=minDisList, areaSize=rectAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
+    straightLineCondition = condition(name='straightLine', areaType='straightLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
+    midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
+    noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
+
     for i in range(20):
         print(i)
-
-        width = [3, 4, 5]
-        height = [3, 4, 5]
-        intentionDis = [2, 4, 6]
-        direction = [45, 135, 225, 315]
-
         expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
         numExpTrial = len(expDesignValues)
         random.shuffle(expDesignValues)
         expDesignValues.append(random.choice(expDesignValues))
         createExpCondition = CreatExpCondition(direction, gridSize)
         samplePositionFromCondition = SamplePositionFromCondition(df, createExpCondition, expDesignValues)
-
-        distanceDiffList = [0, 2, 4]
-        minDisList = range(5, 15)
-        intentionedDisToTargetList = [2, 4, 6]
-        rectAreaSize = [6, 8, 10, 12, 14, 16, 18, 20, 25, 30, 36]
-        lineAreaSize = [4, 5, 6, 7, 8, 9, 10]
-        condition = namedtuple('condition', 'name areaType distanceDiff minDis areaSize intentionedDisToTarget')
-
-        expCondition = condition(name='expCondition', areaType='rect', distanceDiff=[0], minDis=minDisList, areaSize=rectAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
-        rectCondition = condition(name='controlRect', areaType='rect', distanceDiff=[2, 4], minDis=minDisList, areaSize=rectAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
-        straightLineCondition = condition(name='straightLine', areaType='straightLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
-        midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
-        noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
-
         numExpTrial = len(expDesignValues) - 1
         numControlTrial = int(numExpTrial * 2 / 3)
         expTrials = [expCondition] * numExpTrial
         conditionList = list(expTrials + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
         numNormalTrials = len(conditionList)
+
+
         random.shuffle(conditionList)
         conditionList.append(expCondition)
 
@@ -93,7 +95,14 @@ def main():
         blockNumber = int(numNormalTrials / numTrialsPerBlock)
         noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
-        policy = pickle.load(open(os.path.join(machinePolicyPath , "noise0.1WolfToTwoSheepGird15_policy.pkl"), "rb"))
+
+###deubg
+        conditionList = [expCondition]*27
+        noiseDesignValues = ['special']*27
+
+###debug
+
+        policy = pickle.load(open(os.path.join(machinePolicyPath , "noise0WolfToTwoSheepGird15_policy.pkl"), "rb"))
         softmaxBeta = -1
         modelController = ModelController(policy, gridSize, softmaxBeta)
         controller = modelController
@@ -107,7 +116,7 @@ def main():
 
         experimentValues = co.OrderedDict()
 
-        experimentValues["name"] = "maxModel" + str(i)
+        experimentValues["name"] = "maxNoNoiseSpecial" + str(i)
         writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
         writer = WriteDataFrameToCSV(writerPath)
         experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
