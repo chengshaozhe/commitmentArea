@@ -38,7 +38,7 @@ def main():
     samplePositionFromCondition = SamplePositionFromCondition(df, createExpCondition, expDesignValues)
 
     distanceDiffList = [0, 2, 4]
-    minDisList = range(5, 15)
+    minDisList = range(5, 16)
     intentionedDisToTargetList = [2, 4, 6]
     rectAreaSize = [6, 8, 10, 12, 14, 16, 18, 20, 25, 30, 36]
     lineAreaSize = [4, 5, 6, 7, 8, 9, 10]
@@ -96,7 +96,7 @@ def main():
     drawImage = DrawImage(screen)
 
     experimentValues = co.OrderedDict()
-    experimentValues["name"] = 'chenjianan'
+    experimentValues["name"] = 'test'
     # experimentValues["name"] = input("Please enter your name:").capitalize()
 
     writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
