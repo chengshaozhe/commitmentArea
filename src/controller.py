@@ -71,16 +71,41 @@ def backToZoneNoise(playerGrid, trajectory, zone, noiseStep, firstIntentionFlag)
     return realPlayerGrid, noiseStep, firstIntentionFlag
 
 
+# class SampleToZoneNoise:
+#     def __init__(self, noiseActionSpace):
+#         self.noiseActionSpace = noiseActionSpace
+
+#     def __call__(self, playerGrid, trajectory, zone, noiseStep, firstIntentionFlag):
+#         realPlayerGrid = None
+#         if playerGrid not in zone and tuple(trajectory[-2]) in zone and not firstIntentionFlag:
+#             possibleGrid = (tuple(np.add(playerGrid, action)) for action in self.noiseActionSpace)
+#             realPlayerGrids = list(filter(lambda x: x in zone, possibleGrid))
+#             realPlayerGrid = random.choice(realPlayerGrids)
+#             noiseStep = len(trajectory)
+#             firstIntentionFlag = True
+#         return realPlayerGrid, noiseStep, firstIntentionFlag
+
+def isGridsNotALine(playerGrid, bean1Grid, bean2Grid):
+    line = np.array((playerGrid,bean1Grid,bean2Grid)).T
+    if len(set(line[0])) != len(line[0]) or len(set(line[1])) != len(line[1]):
+        return False
+    else:
+        return True
+
 class SampleToZoneNoise:
     def __init__(self, noiseActionSpace):
         self.noiseActionSpace = noiseActionSpace
 
-    def __call__(self, playerGrid, trajectory, zone, noiseStep, firstIntentionFlag):
+    def __call__(self, playerGrid, bean1Grid, bean2Grid, trajectory, zone, noiseStep, firstIntentionFlag):
         realPlayerGrid = None
         if playerGrid not in zone and tuple(trajectory[-2]) in zone and not firstIntentionFlag:
             possibleGrid = (tuple(np.add(playerGrid, action)) for action in self.noiseActionSpace)
-            realPlayerGrids = list(filter(lambda x: x in zone, possibleGrid))
-            realPlayerGrid = random.choice(realPlayerGrids)
+            realPlayerGrids = tuple(filter(lambda x: x in zone, possibleGrid))
+            noLineGrids = list(filter(lambda x: isGridsNotALine(x,bean1Grid, bean2Grid), realPlayerGrids))
+            if noLineGrids:
+                realPlayerGrid = random.choice(noLineGrids)
+            else:
+                realPlayerGrid = random.choice(realPlayerGrids)
             noiseStep = len(trajectory)
             firstIntentionFlag = True
         return realPlayerGrid, noiseStep, firstIntentionFlag

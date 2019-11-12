@@ -102,7 +102,7 @@ def main():
 
 ###debug
 
-        policy = pickle.load(open(os.path.join(machinePolicyPath , "noise0WolfToTwoSheepGird15_policy.pkl"), "rb"))
+        policy = pickle.load(open(os.path.join(machinePolicyPath , "noise0.1WolfToTwoSheepNoiseTwoStepGird15_policy.pkl"), "rb"))
         softmaxBeta = -1
         modelController = ModelController(policy, gridSize, softmaxBeta)
         controller = modelController
@@ -116,7 +116,7 @@ def main():
 
         experimentValues = co.OrderedDict()
 
-        experimentValues["name"] = "maxNoNoiseSpecial" + str(i)
+        experimentValues["name"] = "maxModelSpecial" + str(i)
         writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
         writer = WriteDataFrameToCSV(writerPath)
         experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
