@@ -174,7 +174,7 @@ class ModelController():
             action = list(policyForCurrentStateDict.keys())[
                 list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
         aimePlayerGrid = tuple(np.add(playerGrid, action))
-        pg.time.delay(0)
+        # pg.time.delay(500)
         return aimePlayerGrid, action
 
 

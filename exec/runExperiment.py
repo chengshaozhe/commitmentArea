@@ -68,7 +68,7 @@ def main():
 # test exp trail
     # conditionList = [expCondition] * len(conditionList)
     # noiseDesignValues = ['special'] * len(noiseDesignValues)
-    # print(noiseDesignValues)
+    # print(len(noiseDesignValues))
 
     screenWidth = 600
     screenHeight = 600
@@ -96,7 +96,7 @@ def main():
     drawImage = DrawImage(screen)
 
     experimentValues = co.OrderedDict()
-    experimentValues["name"] = 'test'
+    experimentValues["name"] = 'chenjianan'
     # experimentValues["name"] = input("Please enter your name:").capitalize()
 
     writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
