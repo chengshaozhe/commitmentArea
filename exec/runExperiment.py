@@ -65,7 +65,7 @@ def main():
     noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
 
-# test exp trail
+# debug exp trail
     # conditionList = [expCondition] * len(conditionList)
     # noiseDesignValues = ['special'] * len(noiseDesignValues)
     # print(len(noiseDesignValues))
