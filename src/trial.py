@@ -131,7 +131,6 @@ class SpecialTrial():
         avoidCommitmentZone = calculateAvoidCommitmnetZone(initialPlayerGrid, bean1Grid, bean2Grid)
         pause = True
         realPlayerGrid = initialPlayerGrid
-        self.drawNewState(bean1Grid, bean2Grid, initialPlayerGrid)
         while pause:
             aimPlayerGrid, aimAction = self.controller(realPlayerGrid, bean1Grid, bean2Grid)
             goal = inferGoal(trajectory[-1], aimPlayerGrid, bean1Grid, bean2Grid)
@@ -140,7 +139,7 @@ class SpecialTrial():
 
             if len(trajectory) > 1:
                 # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
-                noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid,bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
+                noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid, bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
 
                 if noisePlayerGrid:
                     realPlayerGrid = self.checkBoundary(noisePlayerGrid)

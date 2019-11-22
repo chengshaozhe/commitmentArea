@@ -97,7 +97,7 @@ def main():
     drawImage = DrawImage(screen)
 
     experimentValues = co.OrderedDict()
-    experimentValues["name"] = 'yulei'
+    experimentValues["name"] = 'test'
     # experimentValues["name"] = input("Please enter your name:").capitalize()
 
     writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
