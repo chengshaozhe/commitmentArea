@@ -7,7 +7,7 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 
-from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention
+from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention,calculateSE
 
 
 if __name__ == '__main__':
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
         statsList.append([np.mean(statDF['firstIntentionConsistFinalGoalNormal']), np.mean(statDF['firstIntentionConsistFinalGoalSpecail'])])
 
-        stdList.append([np.std(statDF['firstIntentionConsistFinalGoalNormal']) / np.sqrt(len(statDF['firstIntentionConsistFinalGoalNormal']) - 1), np.std(statDF['firstIntentionConsistFinalGoalSpecail']) / np.sqrt(len(statDF['firstIntentionConsistFinalGoalSpecail']) - 1)])
+        stdList.append([calculateSE(statDF['firstIntentionConsistFinalGoalNormal']),calculateSE(statDF['firstIntentionConsistFinalGoalSpecail'])])
 
     xlabels = ['normalTrial', 'specialTrial']
     lables = participants

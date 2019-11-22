@@ -1,6 +1,11 @@
 import numpy as np
 
 
+def calculateSE(data):
+    standardError = np.std(data) / np.sqrt(len(data) - 1)
+    return standardError
+
+
 def calculateGridDis(grid1, grid2):
     gridDis = np.linalg.norm(np.array(grid1) - np.array(grid2), ord=1)
     return gridDis
@@ -49,11 +54,11 @@ def calculateFirstOutZoneRatio(trajectory, zone):
 def calculateFirstIntentionStep(goalList):
     goal1Step = goal2Step = len(goalList)
     if 1 in goalList:
-        goal1Step = goalList.index(1)
+        goal1Step = goalList.index(1) + 1
     if 2 in goalList:
-        goal2Step = goalList.index(2)
+        goal2Step = goalList.index(2) + 1
     firstIntentionStep = min(goal1Step, goal2Step)
-    return firstIntentionStep + 1
+    return firstIntentionStep
 
 
 def calculateFirstIntentionRatio(goalList):
@@ -99,6 +104,6 @@ if __name__ == '__main__':
     c = calculateFirstOutZoneRatio(trajectory, a)
     print(c)
 
-    goalList = [0, 0, 0, 0, 2, 0, 0, 0, 2, 2, 0, 2, 0]
+    goalList = [0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 2, 0]
     d = calculateFirstIntentionRatio(goalList)
     print(d)

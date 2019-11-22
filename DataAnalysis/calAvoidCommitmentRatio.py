@@ -7,7 +7,7 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 from collections import Counter
-from dataAnalysis import calculateAvoidCommitmnetZone, calculateFirstOutZoneRatio, calculateAvoidCommitmentRatio, calculateFirstIntentionStep, calculateFirstIntentionRatio
+from dataAnalysis import calculateSE,calculateAvoidCommitmnetZone, calculateFirstOutZoneRatio, calculateAvoidCommitmentRatio, calculateFirstIntentionStep, calculateFirstIntentionRatio
 
 
 if __name__ == '__main__':
@@ -32,11 +32,11 @@ if __name__ == '__main__':
         statDF = pd.DataFrame()
         print(participant, nubOfSubj)
 
-        dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
-        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
+        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'rect')]
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
@@ -58,7 +58,7 @@ if __name__ == '__main__':
         # statDF.to_csv("statDF.csv")
         statsList.append([np.mean(statDF['firstIntentionRatio']), np.mean(statDF['avoidCommitmentRatio'])])
 
-        stdList.append([np.std(statDF['firstIntentionRatio']) / np.sqrt(len(statDF['firstIntentionRatio']) - 1), np.std(statDF['avoidCommitmentRatio']) / np.sqrt(len(statDF['avoidCommitmentRatio']) - 1)])
+        stdList.append([calculateSE(statDF['firstIntentionRatio']),calculateSE(statDF['avoidCommitmentRatio'])])
 
     xlabels = ['firstIntentionRatio', 'avoidCommitmentAreaRatio']
     labels = participants

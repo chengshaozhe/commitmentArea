@@ -8,12 +8,13 @@ import numpy as np
 from scipy.stats import ttest_ind
 from collections import Counter
 
-from dataAnalysis import calculateFirstIntentionStep
+from dataAnalysis import calculateSE, calculateFirstIntentionStep
 
 
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
+    stdList = []
     participants = ['human', 'maxModelNoise0.1', 'maxModelNoNoise']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -28,9 +29,9 @@ if __name__ == '__main__':
         print(participant, nubOfSubj)
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
+        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
-        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
         # dfExpTrail = df[(df['areaType'] != 'none')]
@@ -45,6 +46,7 @@ if __name__ == '__main__':
 
         # statDF.to_csv("statDF.csv")
         statsList.append([np.mean(statDF['firstIntentionStep'])])
+        stdList.append([calculateSE(statDF['firstIntentionStep'])])
 
     xlabels = ['firstIntentionStep']
     labels = participants
@@ -53,7 +55,7 @@ if __name__ == '__main__':
     width = totalWidth / n
     x = x - (totalWidth - width) / 2
     for i in range(len(statsList)):
-        plt.bar(x + width * i, statsList[i], width=width, label=labels[i])
+        plt.bar(x + width * i, statsList[i],yerr = stdList[i], width=width, label=labels[i])
     plt.xticks(x, xlabels)
     plt.ylim((0, 10))
     plt.legend(loc='best')

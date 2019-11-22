@@ -94,7 +94,7 @@ if __name__ == '__main__':
     print(a, 'firstIntentionRatio')
     print(b, 'firstIntentionStep')
     print(c, 'avoidCommitmentRatio')
-    print(d, 'firstIntentionConsistFinalGoalSpecail')
+    # print(d, 'firstIntentionConsistFinalGoalSpecail')
 
     # p = chisquare(statDF['firstIntentionConsistFinalGoalSpecail'].tolist(), statModelDf['firstIntentionConsistFinalGoalSpecail'].tolist()[:34])
 
