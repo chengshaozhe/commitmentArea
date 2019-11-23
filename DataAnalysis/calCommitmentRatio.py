@@ -40,9 +40,9 @@ if __name__ == '__main__':
         print('firstIntentionConsistFinalGoalSpecail', np.mean(statDF['firstIntentionConsistFinalGoalSpecail']))
         print('')
 
-        statsList.append([np.mean(statDF['firstIntentionConsistFinalGoalNormal']), np.mean(statDF['firstIntentionConsistFinalGoalSpecail'])])
-
-        stdList.append([calculateSE(statDF['firstIntentionConsistFinalGoalNormal']),calculateSE(statDF['firstIntentionConsistFinalGoalSpecail'])])
+        stats = statDF.columns
+        statsList.append([np.mean(statDF[stat]) for stat in stats])
+        stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
     xlabels = ['normalTrial', 'specialTrial']
     lables = participants

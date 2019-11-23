@@ -30,6 +30,15 @@ def calculateAvoidCommitmnetZone(playerGrid, target1, target2):
         avoidCommitmentZone = []
     return avoidCommitmentZone
 
+def calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2):
+    dis1 = calculateGridDis(playerGrid, target1)
+    dis2 = calculateGridDis(playerGrid, target2)
+    rect1 = creatRect(playerGrid, target1)
+    rect2 = creatRect(playerGrid, target2)
+    avoidCommitmentZone = list(set(rect1).intersection(set(rect2)))
+    avoidCommitmentZone.remove(tuple(playerGrid))
+    return avoidCommitmentZone
+
 
 def calculateAvoidCommitmentRatio(trajectory, zone):
     avoidCommitmentSteps = 0
@@ -66,24 +75,13 @@ def calculateFirstIntentionRatio(goalList):
     firstIntentionRatio = firstIntentionStep / len(goalList)
     return firstIntentionRatio
 
-
 def calculateFirstIntention(goalList):
-    try:
-        target1Goal = goalList.index(1)
-    except ValueError as e:
-        target1Goal = 999
-    try:
-        target2Goal = goalList.index(2)
-    except ValueError as e:
-        target2Goal = 999
-    if target1Goal < target2Goal:
-        firstGoal = 1
-    elif target2Goal < target1Goal:
-        firstGoal = 2
-    else:
-        firstGoal = 0
-    return firstGoal
-
+    maxSteps = len(goalList)-1
+    goal1Index = goalList.index(1) if 1 in goalList else maxSteps
+    goal2Index = goalList.index(2) if 2 in goalList else maxSteps
+    firstIntentionIndex = min(goal1Index,goal2Index)
+    firstIntention = goalList[firstIntentionIndex]
+    return firstIntention
 
 def calculateFirstIntentionConsistency(goalList):
     firstGoal = calculateFirstIntention(goalList)
@@ -104,6 +102,8 @@ if __name__ == '__main__':
     c = calculateFirstOutZoneRatio(trajectory, a)
     print(c)
 
-    goalList = [0, 0, 0, 0, 2, 0, 0, 2, 2, 0, 2, 0]
+    goalList = [0, 0, 0,2,2,2,2,2, 0,0]
     d = calculateFirstIntentionRatio(goalList)
     print(d)
+
+    print(calculateFirstIntention(goalList))

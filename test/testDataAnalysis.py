@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 import unittest
 from ddt import ddt, data, unpack
-from dataAnalysis.dataAnalysis import calculateAvoidCommitmentRatio, calculateFirstOutZoneRatio, calculateFirstIntentionRatio
+from dataAnalysis.dataAnalysis import calculateAvoidCommitmentRatio, calculateFirstOutZoneRatio, calculateFirstIntentionRatio,calculateFirstIntention
 
 
 @ddt
@@ -35,6 +35,14 @@ class TestAnalysisFunctions(unittest.TestCase):
         truthValue = np.array_equal(avoidCommitmentRatio, groundTruthRatio)
         self.assertTrue(truthValue)
 
+    @data(([0, 0, 0, 0, 2, 0, 0, 2, 2, 2], 2),
+        ([0, 0, 0, 0,1, 2, 0, 0, 2, 2, 2], 1),
+        ([0, 0, 0, 0, 0, 0, 0, 0], 0))
+    @unpack
+    def testCalculateFirstIntention(self, goalList, groundTruthGoal):
+        firstIntention = calculateFirstIntention(goalList)
+        truthValue = np.array_equal(firstIntention, groundTruthGoal)
+        self.assertTrue(truthValue)
 
 if __name__ == '__main__':
     unittest.main()
