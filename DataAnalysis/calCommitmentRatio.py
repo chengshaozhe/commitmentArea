@@ -19,23 +19,19 @@ if __name__ == '__main__':
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
         # df.to_csv("all.csv")
-
-        # print(df.head(6))
         nubOfSubj = len(df["name"].unique())
-        statDF = pd.DataFrame()
         print('participant', participant, nubOfSubj)
+
 
         df["firstIntentionConsistFinalGoal"] = df.apply(lambda x: calculateFirstIntentionConsistency(eval(x['goal'])), axis=1)
         dfNormailTrail = df[df['noiseNumber'] != 'special']
         dfSpecialTrail = df[df['noiseNumber'] == 'special']
 
+        statDF = pd.DataFrame()
         statDF['firstIntentionConsistFinalGoalNormal'] = dfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
         statDF['firstIntentionConsistFinalGoalSpecail'] = dfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
-
-        # statDF['firstIntentionConsistFinalGoalNormalSD'] = dfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].std()
-        # statDF['firstIntentionConsistFinalGoalSpecailSD'] = dfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].std()
-
         # statDF.to_csv("statDF.csv")
+
         print('firstIntentionConsistFinalGoalNormal', np.mean(statDF['firstIntentionConsistFinalGoalNormal']))
         print('firstIntentionConsistFinalGoalSpecail', np.mean(statDF['firstIntentionConsistFinalGoalSpecail']))
         print('')

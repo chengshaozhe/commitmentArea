@@ -22,10 +22,7 @@ if __name__ == '__main__':
 
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(eval(x['goal'])), axis=1)
         # df.to_csv("all.csv")
-
-        # print(df.head(6))
         nubOfSubj = len(df["name"].unique())
-        statDF = pd.DataFrame()
         print(participant, nubOfSubj)
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
@@ -40,13 +37,14 @@ if __name__ == '__main__':
         # dfExpTrail = df[df['noiseNumber'] != 'special']
         # dfExpTrail = df
 
+        statDF = pd.DataFrame()
         statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()
         print('firstIntentionStep', np.mean(statDF['firstIntentionStep']))
         print('')
 
-        # statDF.to_csv("statDF.csv")
-        statsList.append([np.mean(statDF['firstIntentionStep'])])
-        stdList.append([calculateSE(statDF['firstIntentionStep'])])
+        stats = statDF.columns
+        statsList.append([np.mean(statDF[stat]) for stat in stats])
+        stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
     xlabels = ['firstIntentionStep']
     labels = participants

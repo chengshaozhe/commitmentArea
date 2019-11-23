@@ -24,16 +24,11 @@ if __name__ == '__main__':
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(eval(x['goal'])), axis=1)
         df['firstIntentionRatio'] = df.apply(lambda x: calculateFirstIntentionRatio(eval(x['goal'])), axis=1)
         # df.to_csv("all.csv")
-
-        # df['firstIntentionRatio'] = df.apply(lambda x: calculateRatioInNonCommitment(x['goal']), axis=1)
-
-        # print(df.head(6))
         nubOfSubj = len(df["name"].unique())
-        statDF = pd.DataFrame()
         print(participant, nubOfSubj)
 
-        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
 
+        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
@@ -45,17 +40,16 @@ if __name__ == '__main__':
         # dfExpTrail = df[df['noiseNumber'] != 'special']
         # dfExpTrail = df
 
+        statDF = pd.DataFrame()
         statDF['avoidCommitmentRatio'] = dfExpTrail.groupby('name')["avoidCommitmentRatio"].mean()
-        print('avoidCommitmentRatio', np.mean(statDF['avoidCommitmentRatio']))
-
         statDF['firstIntentionRatio'] = dfExpTrail.groupby('name')["firstIntentionRatio"].mean()
-        print('firstIntentionRatio', np.mean(statDF['firstIntentionRatio']))
-
         statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()
+        # statDF.to_csv("statDF.csv")
+
+        print('avoidCommitmentRatio', np.mean(statDF['avoidCommitmentRatio']))
+        print('firstIntentionRatio', np.mean(statDF['firstIntentionRatio']))
         print('firstIntentionStep', np.mean(statDF['firstIntentionStep']))
         print('')
-
-        # statDF.to_csv("statDF.csv")
 
         # stats = statDF.columns
         stats = ['firstIntentionRatio','avoidCommitmentRatio']
