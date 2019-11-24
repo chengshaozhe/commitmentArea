@@ -18,6 +18,14 @@ def creatRect(coor1, coor2):
     return rect
 
 
+def calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2):
+    rect1 = creatRect(playerGrid, target1)
+    rect2 = creatRect(playerGrid, target2)
+    avoidCommitmentZone = list(set(rect1).intersection(set(rect2)))
+    avoidCommitmentZone.remove(tuple(playerGrid))
+    return avoidCommitmentZone
+
+
 def calculateAvoidCommitmnetZone(playerGrid, target1, target2):
     dis1 = calculateGridDis(playerGrid, target1)
     dis2 = calculateGridDis(playerGrid, target2)
@@ -28,15 +36,6 @@ def calculateAvoidCommitmnetZone(playerGrid, target1, target2):
         avoidCommitmentZone.remove(tuple(playerGrid))
     else:
         avoidCommitmentZone = []
-    return avoidCommitmentZone
-
-def calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2):
-    dis1 = calculateGridDis(playerGrid, target1)
-    dis2 = calculateGridDis(playerGrid, target2)
-    rect1 = creatRect(playerGrid, target1)
-    rect2 = creatRect(playerGrid, target2)
-    avoidCommitmentZone = list(set(rect1).intersection(set(rect2)))
-    avoidCommitmentZone.remove(tuple(playerGrid))
     return avoidCommitmentZone
 
 
@@ -61,11 +60,9 @@ def calculateFirstOutZoneRatio(trajectory, zone):
 
 
 def calculateFirstIntentionStep(goalList):
-    goal1Step = goal2Step = len(goalList)
-    if 1 in goalList:
-        goal1Step = goalList.index(1) + 1
-    if 2 in goalList:
-        goal2Step = goalList.index(2) + 1
+    maxSteps = len(goalList)
+    goal1Step = goalList.index(1) + 1 if 1 in goalList else maxSteps
+    goal2Step = goalList.index(2) + 1 if 2 in goalList else maxSteps
     firstIntentionStep = min(goal1Step, goal2Step)
     return firstIntentionStep
 
@@ -75,13 +72,15 @@ def calculateFirstIntentionRatio(goalList):
     firstIntentionRatio = firstIntentionStep / len(goalList)
     return firstIntentionRatio
 
+
 def calculateFirstIntention(goalList):
-    maxSteps = len(goalList)-1
+    maxSteps = len(goalList) - 1
     goal1Index = goalList.index(1) if 1 in goalList else maxSteps
     goal2Index = goalList.index(2) if 2 in goalList else maxSteps
-    firstIntentionIndex = min(goal1Index,goal2Index)
+    firstIntentionIndex = min(goal1Index, goal2Index)
     firstIntention = goalList[firstIntentionIndex]
     return firstIntention
+
 
 def calculateFirstIntentionConsistency(goalList):
     firstGoal = calculateFirstIntention(goalList)
@@ -102,7 +101,7 @@ if __name__ == '__main__':
     c = calculateFirstOutZoneRatio(trajectory, a)
     print(c)
 
-    goalList = [0, 0, 0,2,2,2,2,2, 0,0]
+    goalList = [0, 0, 0, 2, 2, 2, 2, 2, 0, 0]
     d = calculateFirstIntentionRatio(goalList)
     print(d)
 
