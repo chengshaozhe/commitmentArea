@@ -37,10 +37,10 @@ if __name__ == '__main__':
     statDF['firstIntentionConsistFinalGoalNormal'] = dfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
     statDF['firstIntentionConsistFinalGoalSpecail'] = dfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
 
-    # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+    dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
     # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
     # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
-    dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
+    # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
 
     statDF['avoidCommitmentRatio'] = dfExpTrail.groupby('name')["avoidCommitmentRatio"].mean()
 
@@ -51,6 +51,7 @@ if __name__ == '__main__':
     # statDF.to_csv(os.path.join(resultsPath, 'statDF.csv'))
 
     modelPath = os.path.join(resultsPath, 'maxModelNoise0.1')
+    # modelPath = os.path.join(resultsPath, 'maxModelNoNoise')
     modelDf = pd.concat(map(pd.read_csv, glob.glob(os.path.join(modelPath, '*.csv'))), sort=False)
 
     modelDf["firstIntentionConsistFinalGoal"] = modelDf.apply(lambda x: calculateFirstIntentionConsistency(eval(x['goal'])), axis=1)
@@ -66,10 +67,10 @@ if __name__ == '__main__':
     statModelDf['firstIntentionConsistFinalGoalNormal'] = modelDfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
     statModelDf['firstIntentionConsistFinalGoalSpecail'] = modelDfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
 
-    # dfExpTrailModel = modelDf[(modelDf['areaType'] == 'expRect') & (modelDf['noiseNumber'] != 'special')]
+    dfExpTrailModel = modelDf[(modelDf['areaType'] == 'expRect') & (modelDf['noiseNumber'] != 'special')]
     # dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] != 'none')]
     # dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] == 'midLine')]
-    dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] == 'straightLine')]
+    # dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] == 'straightLine')]
 
     # dfExpTrailModel = modelDf
 
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     print(a, 'firstIntentionRatio')
     print(b, 'firstIntentionStep')
     print(c, 'avoidCommitmentRatio')
-    # print(d, 'firstIntentionConsistFinalGoalSpecail')
+    print(d, 'firstIntentionConsistFinalGoalSpecail')
 
     # p = chisquare(statDF['firstIntentionConsistFinalGoalSpecail'].tolist(), statModelDf['firstIntentionConsistFinalGoalSpecail'].tolist()[:34])
 

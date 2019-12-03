@@ -27,8 +27,9 @@ if __name__ == '__main__':
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
-        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
+        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine') & (df['intentionedDisToTargetMin'] == 2)]
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
         # dfExpTrail = df[(df['areaType'] != 'none')]
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     width = totalWidth / n
     x = x - (totalWidth - width) / 2
     for i in range(len(statsList)):
-        plt.bar(x + width * i, statsList[i],yerr = stdList[i], width=width, label=labels[i])
+        plt.bar(x + width * i, statsList[i], yerr=stdList[i], width=width, label=labels[i])
     plt.xticks(x, xlabels)
     plt.ylim((0, 10))
     plt.legend(loc='best')

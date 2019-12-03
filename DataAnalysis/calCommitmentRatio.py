@@ -7,21 +7,22 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 
-from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention,calculateSE
+from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention, calculateSE
 
 
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
+    # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
+    participants = ['maxModelNoise0', 'maxModelNoise0.1OneStep', 'maxModelNoise0.1TwoStep', 'maxModelNoise0.2OneStep']
+
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
         # df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())
         print('participant', participant, nubOfSubj)
-
 
         df["firstIntentionConsistFinalGoal"] = df.apply(lambda x: calculateFirstIntentionConsistency(eval(x['goal'])), axis=1)
 

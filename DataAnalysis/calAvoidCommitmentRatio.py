@@ -7,14 +7,16 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 from collections import Counter
-from dataAnalysis import calculateSE,calculateAvoidCommitmnetZone,calculateAvoidCommitmnetZoneAll, calculateFirstOutZoneRatio, calculateAvoidCommitmentRatio, calculateFirstIntentionStep, calculateFirstIntentionRatio
+from dataAnalysis import calculateSE, calculateAvoidCommitmnetZone, calculateAvoidCommitmnetZoneAll, calculateFirstOutZoneRatio, calculateAvoidCommitmentRatio, calculateFirstIntentionStep, calculateFirstIntentionRatio
 
 
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
+    # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
+    participants = ['maxModelNoise0', 'maxModelNoise0.1OneStep', 'maxModelNoise0.1TwoStep', 'maxModelNoise0.2OneStep']
+
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -27,14 +29,17 @@ if __name__ == '__main__':
         nubOfSubj = len(df["name"].unique())
         print(participant, nubOfSubj)
 
-
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
-        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'rect')]
+        # dfExpTrail = df[df['areaType'] == 'rect']
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
+
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine') & (df['intentionedDisToTargetMin'] > 2)]
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 1)]
+
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['areaType'] != 'none')]
         # dfExpTrail = df[df['noiseNumber'] != 'special']
@@ -52,10 +57,9 @@ if __name__ == '__main__':
         print('')
 
         # stats = statDF.columns
-        stats = ['firstIntentionRatio','avoidCommitmentRatio']
+        stats = ['firstIntentionRatio', 'avoidCommitmentRatio']
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
-
 
     xlabels = ['firstIntentionRatio', 'avoidCommitmentAreaRatio']
     labels = participants
@@ -71,3 +75,10 @@ if __name__ == '__main__':
 
     plt.title('avoidCommitment')
     plt.show()
+
+    # a = [0.49711976902023564, 0.5810396187561783, 0.5878115167570421, 0.5912656253650558]
+    # plt.plot(participants, a)
+    # plt.ylim((0.45, 0.6))
+    # plt.ylabel('firstIntentionRatio')
+    # plt.title('firstIntentionRatio on different noise model')
+    # plt.show()

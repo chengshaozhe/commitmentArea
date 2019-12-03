@@ -66,13 +66,13 @@ def main():
 
 
 # debug exp trail
-    # conditionList = [expCondition] * len(conditionList)
-    # noiseDesignValues = ['special'] * len(noiseDesignValues)
-    # print(len(noiseDesignValues))
+    conditionList = [expCondition] * len(conditionList)
+    noiseDesignValues = ['special'] * len(noiseDesignValues)
+    print(len(noiseDesignValues))
 
     screenWidth = 600
     screenHeight = 600
-    fullScreen = True
+    fullScreen = False
 
     initializeScreen = InitializeScreen(screenWidth, screenHeight, fullScreen)
     screen = initializeScreen()

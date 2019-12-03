@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 import unittest
 from ddt import ddt, data, unpack
-from dataAnalysis.dataAnalysis import calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmentRatio, calculateFirstOutZoneRatio, calculateFirstIntentionRatio, calculateFirstIntention, calculateFirstIntentionConsistency
+from dataAnalysis.dataAnalysis import calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmentRatio, calculateFirstOutZoneRatio, calculateFirstIntentionRatio, calculateFirstIntention, calculateFirstIntentionConsistency, inferGoal
 
 
 @ddt
@@ -57,6 +57,15 @@ class TestAnalysisFunctions(unittest.TestCase):
     def testCalculateFirstIntentionConsistency(self, goalList, groundTruthConsis):
         firstIntention = calculateFirstIntentionConsistency(goalList)
         truthValue = np.array_equal(firstIntention, groundTruthConsis)
+        self.assertTrue(truthValue)
+
+    @data(((0, 0), (0, 1), (2, 2), (3, 3), 0),
+          ((0, 0), (0, 1), (0, 2), (3, 0), 1),
+          ((0, 0), (0, 1), (2, 0), (0, 3), 2))
+    @unpack
+    def testInferGoal(self, originGrid, aimGrid, targetGridA, targetGridB, groundTruthGoal):
+        inferredGoal = inferGoal(originGrid, aimGrid, targetGridA, targetGridB)
+        truthValue = np.array_equal(inferredGoal, groundTruthGoal)
         self.assertTrue(truthValue)
 
 
