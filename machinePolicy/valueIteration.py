@@ -107,7 +107,6 @@ def grid_transition_stochastic(s=(), a=(), noiseSpace=[], is_valid=None, termina
 
     return next_state_prob
 
-
 def grid_transition_noise(s=(), a=(), A=(), is_valid=None, terminals=(), noise=0.1):
     if s in terminals:
         return {s: 1}
@@ -116,23 +115,45 @@ def grid_transition_noise(s=(), a=(), A=(), is_valid=None, terminals=(), noise=0
         return (s[0] + a[0], s[1] + a[1])
 
     s_n = apply_action(s, a)
+    if not is_valid(s_n):
+        return {s: 1}
+
     noise_action = [i for i in A if i != a]
+    sn_iter = (apply_action(s, noise) for noise in noise_action)
+    states = list(filter(is_valid, sn_iter))
 
-    sn_iter = (apply_action(s, a) for a in noise_action)
-    noise_next_states = list(filter(is_valid, sn_iter))
-    p_n = noise / (len(A) - 1)
-    num_invalid_action = len(noise_action) - len(noise_next_states)
+    p_n = noise / len(states)
+    next_state_prob = {s: p_n for s in states}
+    next_state_prob.update({s_n: 1-noise})
 
-    if is_valid(s_n):
-        next_state_prob = {s: p_n for s in noise_next_states}
-        next_state_prob[s_n] = 1 - noise
-        next_state_prob[s] = num_invalid_action * p_n
-        return next_state_prob
+    return next_state_prob
 
-    else:
-        next_state_prob = {s: p_n for s in noise_next_states}
-        next_state_prob[s] = 1 - noise + num_invalid_action * p_n
-        return next_state_prob
+
+# def grid_transition_noise(s=(), a=(), A=(), is_valid=None, terminals=(), noise=0.1):
+#     if s in terminals:
+#         return {s: 1}
+
+#     def apply_action(s, a):
+#         return (s[0] + a[0], s[1] + a[1])
+
+#     s_n = apply_action(s, a)
+#     noise_action = [i for i in A if i != a]
+
+#     sn_iter = (apply_action(s, a) for a in noise_action)
+#     noise_next_states = list(filter(is_valid, sn_iter))
+#     p_n = noise / (len(A) - 1)
+#     num_invalid_action = len(noise_action) - len(noise_next_states)
+
+#     if is_valid(s_n):
+#         next_state_prob = {s: p_n for s in noise_next_states}
+#         next_state_prob[s_n] = 1 - noise
+#         next_state_prob[s] = num_invalid_action * p_n
+#         return next_state_prob
+
+#     else:
+#         next_state_prob = {s: p_n for s in noise_next_states}
+#         next_state_prob[s] = 1 - noise + num_invalid_action * p_n
+#         return next_state_prob
 
 
 def grid_transition_noise_midpoint(s=(), a=(), A=(), midpoint=(), is_valid=None, terminals=(), noise=0.1):
@@ -332,9 +353,9 @@ if __name__ == '__main__':
     t = 0
     for sheep_states in sheep_states_all:
         t += 1
-        # sheep_states = ((6, 2), (6, 6))
+        sheep_states = ((6, 2), (6, 6))
         # sheep_states = ((7, 3), (3, 7))
-        sheep_states = ((4, 2), (2, 4))
+        # sheep_states = ((4, 2), (2, 4))
 
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
@@ -351,7 +372,6 @@ if __name__ == '__main__':
         noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
         noise = 0.1
-        mode = 1 - noise
         # transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
         transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
@@ -409,24 +429,22 @@ if __name__ == '__main__':
         # for wolf_state in S:
         #     Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
 
-        # import seaborn as sns
+        def calMaxDiff(Qlist):
+            diff = sorted(Qlist)[-1] - sorted(Qlist)[-2]
+            return diff
+        QValueDiff = {s: calMaxDiff(Q_dict[s].values()) for s in Q_dict.keys()}
+        # print (QHeatMap)
+        normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
 
-        # def calMaxDiff(Qlist):
-        #     diff = sorted(Qlist)[-1] - sorted(Qlist)[-2]
-        #     return diff
-        # QValueDiff = {s: calMaxDiff(Q_dict[s].values()) for s in Q_dict.keys()}
-        # # print (QHeatMap)
-        # normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
-
-        # mapValue = 'V'
-        # heatMapValue = eval(mapValue)
-        # y = dict_to_array(heatMapValue)
-        # y = y.reshape((gridSize, gridSize))
-        # df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
-        # sns.heatmap(df, annot=True, fmt='.3f')
-        # plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
-        # plt.show()
-        # break
+        mapValue = 'QValueDiff'
+        heatMapValue = eval(mapValue)
+        y = dict_to_array(heatMapValue)
+        y = y.reshape((gridSize, gridSize))
+        df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
+        sns.heatmap(df, annot=True, fmt='.3f')
+        plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
+        plt.show()
+        break
 
 # viz Q
         # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
