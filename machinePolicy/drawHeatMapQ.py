@@ -7,8 +7,10 @@ import matplotlib.pyplot as plt
 import os
 import pickle
 import sys
+import time
 sys.setrecursionlimit(2**30)
 import pandas as pd
+import seaborn as sns
 
 from viz import *
 from reward import *
@@ -84,8 +86,17 @@ def grid_transition(s, a, is_valid=None, terminals=()):
 
 
 def grid_transition_stochastic(s=(), a=(), noiseSpace=[], is_valid=None, terminals=(), mode=0.9):
+
     if s in terminals:
         return {s: 1}
+
+
+    # if s in terminals:
+    #     return {(-1,-1): 1}
+
+    # if s in [(-1,-1)]:
+    #     return {(-1,-1): 1}
+
 
     def apply_action(s, noise):
         return (s[0] + noise[0], s[1] + noise[1])
@@ -218,8 +229,15 @@ def grid_obstacle_vanish_transition(s, a, is_valid=None, terminals=(), vanish_ra
             return prob
 
 
-def grid_reward(sn, a, env=None, const=-1, is_terminal=None):
-    return const + sum(map(lambda f: env.features[f][sn], env.features))
+# def grid_reward(sn, a, env=None, const=-1, is_terminal=None):
+    # return const + sum(map(lambda f: env.features[f][sn], env.features))
+
+
+def grid_reward(s, a, sn, env=None, const=-1, terminals=None):
+    if sn in terminals:
+        return const + sum(map(lambda f: env.features[f][sn], env.features))
+    else:
+        return  const + sum(map(lambda f: env.features[f][s], env.features))
 
 
 def grid_obstacle_vanish_reward(s, a, env=None, const=-1, is_terminal=None, terminals=()):
@@ -231,30 +249,56 @@ def grid_obstacle_vanish_reward(s, a, env=None, const=-1, is_terminal=None, term
         return const
 
 
+# class ValueIteration():
+#     def __init__(self, gamma, epsilon=0.001, max_iter=100):
+#         self.gamma = gamma
+#         self.epsilon = epsilon
+#         self.max_iter = max_iter
+
+#     def __call__(self, S, A, T, R):
+#         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
+#         V_init = {s: 0 for s in S}
+#         delta = 0
+#         for i in range(max_iter):
+#             V = V_init.copy()
+#             for s in S:
+#                 V_init[s] = max([sum([p * (R[s][a] + gamma * V[s_n])
+#                                       for (s_n, p) in T[s][a].items()]) for a in A])
+
+#             delta = np.array([V[s] - V_init[s] for s in S])
+#             if np.all(delta) < epsilon * (1 - gamma) / gamma:
+#                 break
+#         return V
+
 class ValueIteration():
-    def __init__(self, gamma, epsilon=0.001, max_iter=100):
+    def __init__(self, gamma, epsilon=0.001, max_iter=100,terminals=()):
         self.gamma = gamma
         self.epsilon = epsilon
         self.max_iter = max_iter
+        self.terminals = terminals
 
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
-        V_init = {s: 0 for s in S}
+        S_iter = tuple(filter(lambda s:s not in self.terminals, S))
+        V_init={s: 1 for s in S_iter}
+        Vterminals = {s:0 for s in self.terminals}
+        V_init.update(Vterminals)
         delta = 0
         for i in range(max_iter):
+            print(i)
             V = V_init.copy()
-            for s in S:
-                V_init[s] = max([sum([p * (R[s][a] + gamma * V[s_n])
+            for s in S_iter:
+                V_init[s] = max([sum([p * (R[s][a][s_n] + gamma * V[s_n])
                                       for (s_n, p) in T[s][a].items()]) for a in A])
-
-            delta = np.array([V[s] - V_init[s] for s in S])
+            delta = np.array([V[s] - V_init[s] for s in S_iter])
             if np.all(delta) < epsilon * (1 - gamma) / gamma:
                 break
         return V
 
 
+
 def dict_to_array(V):
-    states, values = zip(*((s, v) for (s, v) in V.iteritems()))
+    states, values = zip(*((s, v) for (s, v) in V.items()))
     row_index, col_index = zip(*states)
     num_row = max(row_index) + 1
     num_col = max(col_index) + 1
@@ -309,7 +353,7 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 if __name__ == '__main__':
     Q_merge = {}
     # PI_merge = co.OrderedDict()
-    gridSize = 15
+    gridSize = 9
     numSheeps = 2
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
@@ -322,19 +366,26 @@ if __name__ == '__main__':
     #     sheep_state = ((df.bean1PositionX[i], df.bean1PositionY[i]),
     #                    (df.bean2PositionX[i], df.bean2PositionY[i]))
     #     sheep_states_all.append(sheep_state)
+    startTime = time.time()
 
     t = 0
     for sheep_states in sheep_states_all:
         t += 1
+        # sheep_states = ((6, 2), (6, 6))
+        sheep_states = ((7, 3), (3, 7))
+        # sheep_states = ((4, 2), (2, 4))
+
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
         env = GridWorld("test", nx=gridSize, ny=gridSize)
-        sheepValue = {s: 100 for s in sheep_states}
-        env.add_feature_map("goal", sheepValue, default=0)
+        goalReward = 100
+        terminalValue = {s: goalReward for s in sheep_states}
+        env.add_feature_map("goal", terminalValue, default=0)
         env.add_terminals(list(sheep_states))
 
         S = tuple(it.product(range(env.nx), range(env.ny)))
+        # S = tuple(list(it.product(range(env.nx), range(env.ny)))+[(-1,-1)])
 
         # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
@@ -343,9 +394,9 @@ if __name__ == '__main__':
         noise = 0.1
 
         mode = 1 - noise
+        transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        noise = 0
-        transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
+        # transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
         T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
@@ -361,29 +412,63 @@ if __name__ == '__main__':
         # to_wolf_punish = ft.partial(distance_punish, goal=wolf_state, unit=1)
         to_sheep_reward = ft.partial(
             distance_mean_reward, goal=sheep_states, unit=1)
+
         grid_reward = ft.partial(
-            grid_reward, env=env, const=-1)
+            grid_reward, env=env, const=-1, terminals=sheep_states)
 
         func_lst = [grid_reward]
         reward_func = ft.partial(sum_rewards, func_lst=func_lst)
 
-        R = {s: {a: reward_func(s, a) for a in A} for s in S}
-        R_arr = np.asarray([[[R[s][a] for s_n in S] for a in A]
-                            for s in S], dtype=float)
+        reward_func = grid_reward
+        # R = {s: {a: reward_func(s, a) for a in A} for s in S}
+        # R_arr = np.asarray([[[R[s][a] for s_n in S] for a in A]
+                            # for s in S], dtype=float)
+        R = {s: {a: {sn: reward_func(s, a, sn) for sn in S} for a in A} for s in S}
+        R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
+                             for a in A] for s in S])
 
         gamma = 0.9
-        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000)
+        value_iteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100,terminals=sheep_states)
         V = value_iteration(S, A, T, R)
+        V.update(terminalValue)
+
         # print(V)
 
         V_arr = V_dict_to_array(V)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
+        Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        # print (Q_dict)
 
-        Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        Q_dict_output = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+
+        normlizedQ_dict = {}
         for wolf_state in S:
-            Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
+            normlizedQ_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
 
-        Q_merge.update(Q_dict)
+        actionProbMax = {s: max(normlizedQ_dict[s].values()) for s in Q_dict.keys()}
+
+        # for wolf_state in S:
+        #     Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
+
+        import seaborn as sns
+
+        def calMaxDiff(Qlist):
+            diff = sorted(Qlist)[-1] - sorted(Qlist)[-2]
+            return diff
+        QValueDiff = {s: calMaxDiff(Q_dict[s].values()) for s in Q_dict.keys()}
+        # print (QHeatMap)
+        normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
+
+        mapValue = 'V'
+
+        heatMapValue = eval(mapValue)
+        y = dict_to_array(heatMapValue)
+        y = y.reshape((gridSize, gridSize))
+        df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
+        sns.heatmap(df, annot=True, fmt='.3f')
+        plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
+        plt.show()
+        break
 
 # viz Q
         # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
@@ -392,8 +477,11 @@ if __name__ == '__main__':
 
         # fig, ax = plt.subplots(1, 1, tight_layout=True)
         # fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
-        # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
-        # # draw_V(ax, V, S)
+        # # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
+        # draw_V(ax, QHeatMap, S)
+        # plt.title('')
+        # plt.show()
+
         # prefix = "result" + str(sheep_states) + 'noise' + str(noise)
         # name = "wolf_".join((prefix, "policy.png"))
         # module_path = os.path.dirname(os.path.abspath(__file__))
@@ -401,12 +489,17 @@ if __name__ == '__main__':
         # path = os.path.join(module_path, name)
         # print ("saving policy figure at %s" % path)
         # plt.savefig(path, dpi=300)
+        # break
 
-        # print (Q_dict)
+        Q_merge.update(Q_dict_output)
+        # print (Q_dict[(3, 3)])
 
 # save value
     # print (len(Q_merge))
-    dirName = os.path.dirname(os.path.abspath(__file__))
-    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseOneStep' + 'Gird' + str(env.nx)
-    pickle_dump_single_result(
-        dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
+    # dirName = os.path.dirname(os.path.abspath(__file__))
+    # prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseTwoStep' + 'Gird' + str(env.nx)
+    # pickle_dump_single_result(
+    #     dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
+
+    # endTime = time.time()
+    # print("Time taken {} seconds".format((endTime - startTime)))

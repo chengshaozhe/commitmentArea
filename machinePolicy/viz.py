@@ -4,7 +4,7 @@ import matplotlib
 
 import matplotlib.pyplot as plt
 import numpy as np
-plt.ion()
+# plt.ion()
 # plt.ioff()
 import matplotlib as mp
 

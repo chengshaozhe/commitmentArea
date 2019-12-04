@@ -313,7 +313,7 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 if __name__ == '__main__':
     Q_merge = {}
     # PI_merge = co.OrderedDict()
-    gridSize = 8
+    gridSize = 9
     numSheeps = 2
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
@@ -385,20 +385,22 @@ if __name__ == '__main__':
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
 
         Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+
         for wolf_state in S:
             Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
-
         Q_merge.update(Q_dict)
 
 # viz Q
-        Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        for wolf_state in S:
-            Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
+        # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        # for wolf_state in S:
+        #     Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
 
         # fig, ax = plt.subplots(1, 1, tight_layout=True)
         # fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
-        # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
-        # # draw_V(ax, V, S)
+        # # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
+        # draw_V(ax, V, S)
+        # plt.show()
+
         # prefix = "result" + str(sheep_states) + 'noise' + str(noise)
         # name = "wolf_".join((prefix, "policy.png"))
         # module_path = os.path.dirname(os.path.abspath(__file__))
@@ -407,7 +409,7 @@ if __name__ == '__main__':
         # print ("saving policy figure at %s" % path)
         # plt.savefig(path, dpi=300)
 
-        print (Q_dict[(3, 3)])
+        # print (Q_dict[(3, 3)])
 
 # save value
     # print (len(Q_merge))
