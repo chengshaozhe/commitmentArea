@@ -232,23 +232,26 @@ def grid_obstacle_vanish_reward(s, a, env=None, const=-1, is_terminal=None, term
 
 
 class ValueIteration():
-    def __init__(self, gamma, epsilon=0.001, max_iter=100):
+    def __init__(self, gamma, epsilon=0.001, max_iter=100, terminals=()):
         self.gamma = gamma
         self.epsilon = epsilon
         self.max_iter = max_iter
+        self.terminals = terminals
 
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
-        V_init = {s: 0 for s in S}
+        S_iter = tuple(filter(lambda s: s not in self.terminals, S))
+        V_init = {s: 0 for s in S_iter}
+        Vterminals = {s: 0 for s in self.terminals}
+        V_init.update(Vterminals)
         delta = 0
         for i in range(max_iter):
             V = V_init.copy()
-            for s in S:
-                V_init[s] = max([sum([p * (R[s][a] + gamma * V[s_n])
+            for s in S_iter:
+                V_init[s] = max([sum([p * (R[s][a][s_n] + gamma * V[s_n])
                                       for (s_n, p) in T[s][a].items()]) for a in A])
-
-            delta = np.array([V[s] - V_init[s] for s in S])
-            if np.all(delta) < epsilon * (1 - gamma) / gamma:
+            delta = np.array([abs(V[s] - V_init[s]) for s in S_iter])
+            if np.all(delta < epsilon * (1 - gamma) / gamma):
                 break
         return V
 
@@ -336,7 +339,6 @@ if __name__ == '__main__':
 
         S = tuple(it.product(range(env.nx), range(env.ny)))
 
-        # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
         noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
@@ -372,8 +374,10 @@ if __name__ == '__main__':
                             for s in S], dtype=float)
 
         gamma = 0.9
-        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000)
+        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=100, terminals=sheep_states)
         V = value_iteration(S, A, T, R)
+        V.update(terminalValue)
+
         # print(V)
 
         V_arr = V_dict_to_array(V)

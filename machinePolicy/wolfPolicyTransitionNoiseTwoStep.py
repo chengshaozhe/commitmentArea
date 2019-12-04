@@ -236,23 +236,26 @@ def grid_obstacle_vanish_reward(s, a, env=None, const=-1, is_terminal=None, term
 
 
 class ValueIteration():
-    def __init__(self, gamma, epsilon=0.001, max_iter=100):
+    def __init__(self, gamma, epsilon=0.001, max_iter=100, terminals=()):
         self.gamma = gamma
         self.epsilon = epsilon
         self.max_iter = max_iter
+        self.terminals = terminals
 
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
-        V_init = {s: 0 for s in S}
+        S_iter = tuple(filter(lambda s: s not in self.terminals, S))
+        V_init = {s: 0 for s in S_iter}
+        Vterminals = {s: 0 for s in self.terminals}
+        V_init.update(Vterminals)
         delta = 0
         for i in range(max_iter):
             V = V_init.copy()
-            for s in S:
-                V_init[s] = max([sum([p * (R[s][a] + gamma * V[s_n])
+            for s in S_iter:
+                V_init[s] = max([sum([p * (R[s][a][s_n] + gamma * V[s_n])
                                       for (s_n, p) in T[s][a].items()]) for a in A])
-
-            delta = np.array([V[s] - V_init[s] for s in S])
-            if np.all(delta) < epsilon * (1 - gamma) / gamma:
+            delta = np.array([abs(V[s] - V_init[s]) for s in S_iter])
+            if np.all(delta < epsilon * (1 - gamma) / gamma):
                 break
         return V
 
@@ -312,26 +315,17 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 
 if __name__ == '__main__':
     Q_merge = {}
-    # PI_merge = co.OrderedDict()
     gridSize = 9
     numSheeps = 2
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
 
-    # df_path = os.path.dirname(os.path.abspath(__file__)) + '/position.xlsx'
-    # df_path = "/Users/chengshaozhe/Downloads/allPosition.csv"
-    # df = pd.read_csv(df_path)
-    # sheep_states_all = []
-    # for i in df.index:
-    #     sheep_state = ((df.bean1PositionX[i], df.bean1PositionY[i]),
-    #                    (df.bean2PositionX[i], df.bean2PositionY[i]))
-    #     sheep_states_all.append(sheep_state)
     startTime = time.time()
 
     t = 0
     for sheep_states in sheep_states_all:
         t += 1
-        sheep_states = ((6, 3), (3, 6))
+        # sheep_states = ((6, 3), (3, 6))
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
@@ -342,7 +336,6 @@ if __name__ == '__main__':
 
         S = tuple(it.product(range(env.nx), range(env.ny)))
 
-        # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
 
         mode = 0.9
@@ -377,8 +370,9 @@ if __name__ == '__main__':
                             for s in S], dtype=float)
 
         gamma = 0.9
-        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000)
+        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000, terminals=sheep_states)
         V = value_iteration(S, A, T, R)
+        V.update(terminalValue)
         # print(V)
 
         V_arr = V_dict_to_array(V)

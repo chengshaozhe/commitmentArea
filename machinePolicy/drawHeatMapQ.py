@@ -241,27 +241,6 @@ def grid_obstacle_vanish_reward(s, a, env=None, const=-1, is_terminal=None, term
         return const
 
 
-# class ValueIteration():
-#     def __init__(self, gamma, epsilon=0.001, max_iter=100):
-#         self.gamma = gamma
-#         self.epsilon = epsilon
-#         self.max_iter = max_iter
-
-#     def __call__(self, S, A, T, R):
-#         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
-#         V_init = {s: 0 for s in S}
-#         delta = 0
-#         for i in range(max_iter):
-#             V = V_init.copy()
-#             for s in S:
-#                 V_init[s] = max([sum([p * (R[s][a] + gamma * V[s_n])
-#                                       for (s_n, p) in T[s][a].items()]) for a in A])
-
-#             delta = np.array([V[s] - V_init[s] for s in S])
-#             if np.all(delta) < epsilon * (1 - gamma) / gamma:
-#                 break
-#         return V
-
 class ValueIteration():
     def __init__(self, gamma, epsilon=0.001, max_iter=100,terminals=()):
         self.gamma = gamma
@@ -371,7 +350,7 @@ if __name__ == '__main__':
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
         noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
-        noise = 0
+        noise = 0.1
         mode = 1 - noise
         # transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
