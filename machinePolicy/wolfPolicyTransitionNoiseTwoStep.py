@@ -338,10 +338,10 @@ if __name__ == '__main__':
 
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
 
-        mode = 0.9
+        noise = 0.1
+        mode = 1 - noise
         transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        noise = 0.1
         # transition_function = ft.partial(
         #     grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 

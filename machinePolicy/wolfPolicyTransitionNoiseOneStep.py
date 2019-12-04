@@ -343,10 +343,6 @@ if __name__ == '__main__':
         noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
         noise = 0.1
-
-        mode = 1 - noise
-
-        noise = 0
         transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
@@ -373,6 +369,9 @@ if __name__ == '__main__':
         R_arr = np.asarray([[[R[s][a] for s_n in S] for a in A]
                             for s in S], dtype=float)
 
+        R = {s: {a: {sn: reward_func(s, a, sn) for sn in S} for a in A} for s in S}
+        R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
+                             for a in A] for s in S])
         gamma = 0.9
         value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=100, terminals=sheep_states)
         V = value_iteration(S, A, T, R)
