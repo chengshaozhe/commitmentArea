@@ -285,7 +285,6 @@ class ValueIteration():
         V_init.update(Vterminals)
         delta = 0
         for i in range(max_iter):
-            print(i)
             V = V_init.copy()
             for s in S_iter:
                 V_init[s] = max([sum([p * (R[s][a][s_n] + gamma * V[s_n])
@@ -352,20 +351,11 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 
 if __name__ == '__main__':
     Q_merge = {}
-    # PI_merge = co.OrderedDict()
     gridSize = 9
     numSheeps = 2
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
 
-    # df_path = os.path.dirname(os.path.abspath(__file__)) + '/position.xlsx'
-    # df_path = "/Users/chengshaozhe/Downloads/allPosition.csv"
-    # df = pd.read_csv(df_path)
-    # sheep_states_all = []
-    # for i in df.index:
-    #     sheep_state = ((df.bean1PositionX[i], df.bean1PositionY[i]),
-    #                    (df.bean2PositionX[i], df.bean2PositionY[i]))
-    #     sheep_states_all.append(sheep_state)
     startTime = time.time()
 
     t = 0
@@ -385,18 +375,15 @@ if __name__ == '__main__':
         env.add_terminals(list(sheep_states))
 
         S = tuple(it.product(range(env.nx), range(env.ny)))
-        # S = tuple(list(it.product(range(env.nx), range(env.ny)))+[(-1,-1)])
 
-        # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
         noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
         noise = 0.1
-
         mode = 1 - noise
-        transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
+        # transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        # transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
+        transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
         T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
@@ -423,6 +410,7 @@ if __name__ == '__main__':
         # R = {s: {a: reward_func(s, a) for a in A} for s in S}
         # R_arr = np.asarray([[[R[s][a] for s_n in S] for a in A]
                             # for s in S], dtype=float)
+
         R = {s: {a: {sn: reward_func(s, a, sn) for sn in S} for a in A} for s in S}
         R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
                              for a in A] for s in S])
@@ -450,25 +438,25 @@ if __name__ == '__main__':
         # for wolf_state in S:
         #     Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
 
-        import seaborn as sns
+        # import seaborn as sns
 
-        def calMaxDiff(Qlist):
-            diff = sorted(Qlist)[-1] - sorted(Qlist)[-2]
-            return diff
-        QValueDiff = {s: calMaxDiff(Q_dict[s].values()) for s in Q_dict.keys()}
-        # print (QHeatMap)
-        normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
+        # def calMaxDiff(Qlist):
+        #     diff = sorted(Qlist)[-1] - sorted(Qlist)[-2]
+        #     return diff
+        # QValueDiff = {s: calMaxDiff(Q_dict[s].values()) for s in Q_dict.keys()}
+        # # print (QHeatMap)
+        # normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
 
-        mapValue = 'V'
+        # mapValue = 'V'
 
-        heatMapValue = eval(mapValue)
-        y = dict_to_array(heatMapValue)
-        y = y.reshape((gridSize, gridSize))
-        df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
-        sns.heatmap(df, annot=True, fmt='.3f')
-        plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
-        plt.show()
-        break
+        # heatMapValue = eval(mapValue)
+        # y = dict_to_array(heatMapValue)
+        # y = y.reshape((gridSize, gridSize))
+        # df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
+        # sns.heatmap(df, annot=True, fmt='.3f')
+        # plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
+        # plt.show()
+        # break
 
 # viz Q
         # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
