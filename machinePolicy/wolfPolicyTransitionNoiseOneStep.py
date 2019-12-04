@@ -83,21 +83,18 @@ def grid_transition(s, a, is_valid=None, terminals=()):
     return {s: 1}
 
 
-def grid_transition_stochastic(s=(), a=(), is_valid=None, terminals=(), mode=0.9):
+def grid_transition_stochastic(s=(), a=(), noiseSpace=[], is_valid=None, terminals=(), mode=0.9):
     if s in terminals:
         return {s: 1}
 
-    def apply_action(a, noise):
-        return (s[0] + a[0] + noise[0], s[1] + a[1] + noise[1])
+    def apply_action(s, noise):
+        return (s[0] + noise[0], s[1] + noise[1])
 
-    s_n = apply_action(a, (0, 0))
+    s_n = (s[0] + a[0], s[1] + a[1])
     if not is_valid(s_n):
         return {s: 1}
 
-    # adding noise to next steps
-    # noise = [(-1, 0), (1, 0), (0, 1), (0, -1), (0, 0)]
-    noise = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
-    sn_iter = (apply_action(a, n) for n in noise)
+    sn_iter = (apply_action(s, noise) for noise in noiseSpace)
     states = list(filter(is_valid, sn_iter))
 
     p_n = (1.0 - mode) / len(states)
@@ -112,13 +109,13 @@ def grid_transition_noise(s=(), a=(), A=(), is_valid=None, terminals=(), noise=0
     if s in terminals:
         return {s: 1}
 
-    def apply_action(a):
+    def apply_action(s, a):
         return (s[0] + a[0], s[1] + a[1])
 
-    s_n = apply_action(a)
+    s_n = apply_action(s, a)
     noise_action = [i for i in A if i != a]
 
-    sn_iter = (apply_action(a) for a in noise_action)
+    sn_iter = (apply_action(s, a) for a in noise_action)
     noise_next_states = list(filter(is_valid, sn_iter))
     p_n = noise / (len(A) - 1)
     num_invalid_action = len(noise_action) - len(noise_next_states)
@@ -235,23 +232,26 @@ def grid_obstacle_vanish_reward(s, a, env=None, const=-1, is_terminal=None, term
 
 
 class ValueIteration():
-    def __init__(self, gamma, epsilon=0.001, max_iter=100):
+    def __init__(self, gamma, epsilon=0.001, max_iter=100, terminals=()):
         self.gamma = gamma
         self.epsilon = epsilon
         self.max_iter = max_iter
+        self.terminals = terminals
 
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
-        V_init = {s: 0 for s in S}
+        S_iter = tuple(filter(lambda s: s not in self.terminals, S))
+        V_init = {s: 0 for s in S_iter}
+        Vterminals = {s: 0 for s in self.terminals}
+        V_init.update(Vterminals)
         delta = 0
         for i in range(max_iter):
             V = V_init.copy()
-            for s in S:
-                V_init[s] = max([sum([p * (R[s][a] + gamma * V[s_n])
+            for s in S_iter:
+                V_init[s] = max([sum([p * (R[s][a][s_n] + gamma * V[s_n])
                                       for (s_n, p) in T[s][a].items()]) for a in A])
-
-            delta = np.array([V[s] - V_init[s] for s in S])
-            if np.all(delta) < epsilon * (1 - gamma) / gamma:
+            delta = np.array([abs(V[s] - V_init[s]) for s in S_iter])
+            if np.all(delta < epsilon * (1 - gamma) / gamma):
                 break
         return V
 
@@ -339,12 +339,15 @@ if __name__ == '__main__':
 
         S = tuple(it.product(range(env.nx), range(env.ny)))
 
-        # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
+        noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
+<<<<<<< HEAD
         # mode = 0.9
         # transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
+=======
+>>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338
         noise = 0.1
         transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
@@ -372,9 +375,14 @@ if __name__ == '__main__':
         R_arr = np.asarray([[[R[s][a] for s_n in S] for a in A]
                             for s in S], dtype=float)
 
+        R = {s: {a: {sn: reward_func(s, a, sn) for sn in S} for a in A} for s in S}
+        R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
+                             for a in A] for s in S])
         gamma = 0.9
-        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=1000)
+        value_iteration = ValueIteration(gamma, epsilon=0.001, max_iter=100, terminals=sheep_states)
         V = value_iteration(S, A, T, R)
+        V.update(terminalValue)
+
         # print(V)
 
         V_arr = V_dict_to_array(V)

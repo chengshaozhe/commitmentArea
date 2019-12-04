@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import HumanController, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise
+from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise
 from src.simulationTrial import NormalTrial, SpecialTrial
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -76,7 +76,7 @@ def main():
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
     policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1WolfToTwoSheepNoiseTwoStepGird15_policy.pkl"), "rb"))
-    softmaxBeta = 100
+    softmaxBeta = 2.5
 
     modelController = ModelController(policy, gridSize, softmaxBeta)
     controller = modelController

@@ -7,7 +7,7 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 from collections import Counter
-from dataAnalysis import calculateAvoidCommitmnetZone, calculateFirstOutZoneRatio, calculateAvoidCommitmentRatio, calculateFirstIntentionStep, calculateFirstIntentionRatio
+from dataAnalysis import calculateSE, calculateAvoidCommitmnetZone, calculateAvoidCommitmnetZoneAll, calculateFirstOutZoneRatio, calculateAvoidCommitmentRatio, calculateFirstIntentionStep, calculateFirstIntentionRatio
 
 
 if __name__ == '__main__':
@@ -15,7 +15,11 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
+<<<<<<< HEAD:dataAnalysis/calAvoidCommitmentRatio.py
     participants = ['human', 'softmaxBeta250', 'maxModelNoise0', 'maxModelNoise0.1TwoStep']
+=======
+    participants = ['maxModelNoise0', 'maxModelNoise0.1OneStep', 'maxModelNoise0.1TwoStep', 'maxModelNoise0.2OneStep']
+>>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338:DataAnalysis/calAvoidCommitmentRatio.py
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -26,24 +30,32 @@ if __name__ == '__main__':
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(eval(x['goal'])), axis=1)
         df['firstIntentionRatio'] = df.apply(lambda x: calculateFirstIntentionRatio(eval(x['goal'])), axis=1)
         # df.to_csv("all.csv")
-
-        # df['firstIntentionRatio'] = df.apply(lambda x: calculateRatioInNonCommitment(x['goal']), axis=1)
-
-        # print(df.head(6))
         nubOfSubj = len(df["name"].unique())
-        statDF = pd.DataFrame()
         print(participant, nubOfSubj)
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+<<<<<<< HEAD:dataAnalysis/calAvoidCommitmentRatio.py
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
 
+=======
+        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
+>>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338:DataAnalysis/calAvoidCommitmentRatio.py
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 2)]
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
+<<<<<<< HEAD:dataAnalysis/calAvoidCommitmentRatio.py
 
         dfExpTrail = df[((df['distanceDiff'] == 0) & df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
+=======
+        # dfExpTrail = df[df['areaType'] == 'rect']
+
+        # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
+
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine') & (df['intentionedDisToTargetMin'] > 2)]
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 1)]
+>>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338:DataAnalysis/calAvoidCommitmentRatio.py
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['areaType'] == 'rect')]
@@ -51,20 +63,21 @@ if __name__ == '__main__':
         # dfExpTrail = df[df['noiseNumber'] != 'special']
         # dfExpTrail = df
 
+        statDF = pd.DataFrame()
         statDF['avoidCommitmentRatio'] = dfExpTrail.groupby('name')["avoidCommitmentRatio"].mean()
-        print('avoidCommitmentRatio', np.mean(statDF['avoidCommitmentRatio']))
-
         statDF['firstIntentionRatio'] = dfExpTrail.groupby('name')["firstIntentionRatio"].mean()
-        print('firstIntentionRatio', np.mean(statDF['firstIntentionRatio']))
-
         statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()
+        # statDF.to_csv("statDF.csv")
+
+        print('avoidCommitmentRatio', np.mean(statDF['avoidCommitmentRatio']))
+        print('firstIntentionRatio', np.mean(statDF['firstIntentionRatio']))
         print('firstIntentionStep', np.mean(statDF['firstIntentionStep']))
         print('')
 
-        # statDF.to_csv("statDF.csv")
-        statsList.append([np.mean(statDF['firstIntentionRatio']), np.mean(statDF['avoidCommitmentRatio'])])
-
-        stdList.append([np.std(statDF['firstIntentionRatio']) / np.sqrt(len(statDF['firstIntentionRatio']) - 1), np.std(statDF['avoidCommitmentRatio']) / np.sqrt(len(statDF['avoidCommitmentRatio']) - 1)])
+        # stats = statDF.columns
+        stats = ['firstIntentionRatio', 'avoidCommitmentRatio']
+        statsList.append([np.mean(statDF[stat]) for stat in stats])
+        stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
     xlabels = ['firstIntentionRatio', 'avoidCommitmentAreaRatio']
     labels = participants
@@ -80,3 +93,10 @@ if __name__ == '__main__':
 
     plt.title('avoidCommitment')
     plt.show()
+
+    # a = [0.49711976902023564, 0.5810396187561783, 0.5878115167570421, 0.5912656253650558]
+    # plt.plot(participants, a)
+    # plt.ylim((0.45, 0.6))
+    # plt.ylabel('firstIntentionRatio')
+    # plt.title('firstIntentionRatio on different noise model')
+    # plt.show()

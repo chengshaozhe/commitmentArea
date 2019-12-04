@@ -7,15 +7,14 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 
-from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention, calculateSE
+from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention, calculateSE, calculateFirstIntention, calMidLineIntentionAfterNoise
 
 
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta100', 'softmaxBeta250']
-
+    participants = ['human', 'maxModelNoise0.1', 'maxModelNoNoise']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -23,25 +22,26 @@ if __name__ == '__main__':
         nubOfSubj = len(df["name"].unique())
         print('participant', participant, nubOfSubj)
 
-        df["firstIntentionConsistFinalGoal"] = df.apply(lambda x: calculateFirstIntentionConsistency(eval(x['goal'])), axis=1)
+        dfExpTrail = df[(df['noiseNumber'] != 'special') & (len(df['noisePoint']) > 0) & (df['areaType'] == 'expRect')]
 
-        dfNormailTrail = df[df['noiseNumber'] != 'special']
-        dfSpecialTrail = df[df['noiseNumber'] == 'special']
+        dfExpTrail["goalChange"] = dfExpTrail.apply(lambda x: calMidLineIntentionAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
+
+        # dfExpTrail = dfExpTrail[dfExpTrail["goalChange"] == 0]
+        dfExpTrail.to_csv("gg.csv")
 
         statDF = pd.DataFrame()
-        statDF['firstIntentionConsistFinalGoalNormal'] = dfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
-        statDF['firstIntentionConsistFinalGoalSpecail'] = dfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
+        statDF['goalChange'] = dfExpTrail.groupby('name')["goalChange"].mean()
+        print(statDF)
         # statDF.to_csv("statDF.csv")
 
-        print('firstIntentionConsistFinalGoalNormal', np.mean(statDF['firstIntentionConsistFinalGoalNormal']))
-        print('firstIntentionConsistFinalGoalSpecail', np.mean(statDF['firstIntentionConsistFinalGoalSpecail']))
+        print('goalChange', np.mean(statDF['goalChange']))
         print('')
 
         stats = statDF.columns
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
-    xlabels = ['normalTrial', 'specialTrial']
+    xlabels = ['normalTrial']
     lables = participants
     x = np.arange(len(xlabels))
     totalWidth, n = 0.6, len(participants)
