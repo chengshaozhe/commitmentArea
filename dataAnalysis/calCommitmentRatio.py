@@ -14,8 +14,7 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
-    participants = ['human', 'softMaxBeta100', 'softMaxBeta5Model']
+    participants = ['human', 'softmaxBeta100', 'softmaxBeta250']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)

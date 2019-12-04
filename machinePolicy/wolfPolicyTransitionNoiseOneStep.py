@@ -333,7 +333,7 @@ if __name__ == '__main__':
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
         env = GridWorld("test", nx=gridSize, ny=gridSize)
-        sheepValue = {s: 100 for s in sheep_states}
+        sheepValue = {s: 30 for s in sheep_states}
         env.add_feature_map("goal", sheepValue, default=0)
         env.add_terminals(list(sheep_states))
 
@@ -342,6 +342,12 @@ if __name__ == '__main__':
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
         noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
+<<<<<<< HEAD
+        # mode = 0.9
+        # transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
+
+=======
+>>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338
         noise = 0.1
         transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
@@ -383,8 +389,8 @@ if __name__ == '__main__':
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
 
         Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        for wolf_state in S:
-            Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
+        # for wolf_state in S:
+        #     Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
 
         Q_merge.update(Q_dict)
 
@@ -410,6 +416,6 @@ if __name__ == '__main__':
 # save value
     # print (len(Q_merge))
     dirName = os.path.dirname(os.path.abspath(__file__))
-    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseOneStep' + 'Gird' + str(env.nx)
+    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseOneStepUnnormalQReward30' + 'Gird' + str(env.nx)
     pickle_dump_single_result(
         dirc=dirName, prefix=prefix, name="policy", data=Q_merge)

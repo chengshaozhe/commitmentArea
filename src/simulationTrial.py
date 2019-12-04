@@ -75,10 +75,7 @@ class NormalTrial():
         noiseStep = random.sample(list(range(1, totalStep + 1)), designValues)
         stepCount = 0
         goalList = list()
-        # self.drawText("+", [0, 0, 0], [7, 7])
-        # pg.time.wait(1300)
         # self.drawNewState(bean1Grid, bean2Grid, initialPlayerGrid)
-        # pg.event.set_allowed([pg.KEYDOWN, pg.KEYUP, pg.QUIT])
 
         realPlayerGrid = initialPlayerGrid
         pause = True
@@ -94,8 +91,6 @@ class NormalTrial():
             trajectory.append(list(realPlayerGrid))
             aimActionList.append(aimAction)
             pause = checkTerminationOfTrial(bean1Grid, bean2Grid, realPlayerGrid)
-        # pg.time.wait(500)
-        # pg.event.set_blocked([pg.KEYDOWN, pg.KEYUP])
         results["reactionTime"] = str(reactionTime)
         results["trajectory"] = str(trajectory)
         results["aimAction"] = str(aimActionList)
@@ -123,15 +118,11 @@ class SpecialTrial():
         noiseStep = list()
         stepCount = 0
         goalList = list()
-        # self.drawText("+", [0, 0, 0], [7, 7])
-        # pg.time.wait(1300)
         # self.drawNewState(bean1Grid, bean2Grid, initialPlayerGrid)
-        # pg.event.set_allowed([pg.KEYDOWN, pg.KEYUP, pg.QUIT])
 
         avoidCommitmentZone = calculateAvoidCommitmnetZone(initialPlayerGrid, bean1Grid, bean2Grid)
         pause = True
         realPlayerGrid = initialPlayerGrid
-        # self.drawNewState(bean1Grid, bean2Grid, initialPlayerGrid)
         while pause:
             aimPlayerGrid, aimAction = self.controller(realPlayerGrid, bean1Grid, bean2Grid)
             goal = inferGoal(trajectory[-1], aimPlayerGrid, bean1Grid, bean2Grid)
@@ -139,9 +130,8 @@ class SpecialTrial():
             stepCount = stepCount + 1
 
             if len(trajectory) > 1:
-                # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
-
-                noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid,bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
+                noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
+                # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoiseNoLine(realPlayerGrid,bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
 
                 if noisePlayerGrid:
                     realPlayerGrid = self.checkBoundary(noisePlayerGrid)
@@ -156,8 +146,6 @@ class SpecialTrial():
             aimActionList.append(aimAction)
             pause = checkTerminationOfTrial(bean1Grid, bean2Grid, realPlayerGrid)
 
-        # pg.time.wait(500)
-        # pg.event.set_blocked([pg.KEYDOWN, pg.KEYUP])
         results["reactionTime"] = str(reactionTime)
         results["trajectory"] = str(trajectory)
         results["aimAction"] = str(aimActionList)

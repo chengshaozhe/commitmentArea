@@ -15,8 +15,6 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     participants = ['human', 'softMaxBeta100']
-    # participants = ['maxModelNoise0', 'maxModelNoise0.1OneStep', 'maxModelNoise0.1TwoStep', 'maxModelNoise0.2OneStep']
-
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -30,17 +28,19 @@ if __name__ == '__main__':
         print(participant, nubOfSubj)
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+
         dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
+
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 2)]
+
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
-        # dfExpTrail = df[df['areaType'] == 'rect']
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
 
-        # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
-
-        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine') & (df['intentionedDisToTargetMin'] > 2)]
-        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 1)]
+        dfExpTrail = df[((df['distanceDiff'] == 0) & df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
+        # dfExpTrail = df[(df['areaType'] == 'rect')]
         # dfExpTrail = df[(df['areaType'] != 'none')]
         # dfExpTrail = df[df['noiseNumber'] != 'special']
         # dfExpTrail = df
