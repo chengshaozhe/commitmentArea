@@ -64,7 +64,6 @@ def main():
     blockNumber = int(numNormalTrials / numTrialsPerBlock)
     noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
-
 # debug exp trail
     # conditionList = [expCondition] * len(conditionList)
     # noiseDesignValues = ['special'] * len(noiseDesignValues)
@@ -72,11 +71,12 @@ def main():
 
     screenWidth = 600
     screenHeight = 600
-    fullScreen = True
+    fullScreen = False
 
     initializeScreen = InitializeScreen(screenWidth, screenHeight, fullScreen)
     screen = initializeScreen()
     pg.mouse.set_visible(False)
+
     leaveEdgeSpace = 2
     lineWidth = 1
     backgroundColor = [205, 255, 204]

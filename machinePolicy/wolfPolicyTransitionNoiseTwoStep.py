@@ -10,6 +10,7 @@ import sys
 import time
 sys.setrecursionlimit(2**30)
 import pandas as pd
+import json
 
 from viz import *
 from reward import *
@@ -88,17 +89,17 @@ def grid_transition_stochastic(s=(), a=(), is_valid=None, terminals=(), mode=0.9
     if s in terminals:
         return {s: 1}
 
-    def apply_action(a, noise):
-        return (s[0] + a[0] + noise[0], s[1] + a[1] + noise[1])
+    def apply_action(s, noise):
+        return (s[0] + noise[0], s[1] + noise[1])
 
-    s_n = apply_action(a, (0, 0))
+    s_n = (s[0] + a[0], s[1] + a[1])
     if not is_valid(s_n):
         return {s: 1}
 
     # adding noise to next steps
-    # noise = [(-1, 0), (1, 0), (0, 1), (0, -1), (0, 0)]
+    # noise = [(-1, 0), (1, 0), (0, 1), (0, -1)]
     noise = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
-    sn_iter = (apply_action(a, n) for n in noise)
+    sn_iter = (apply_action(s, n) for n in noise)
     states = list(filter(is_valid, sn_iter))
 
     p_n = (1.0 - mode) / len(states)
@@ -113,13 +114,13 @@ def grid_transition_noise(s=(), a=(), A=(), is_valid=None, terminals=(), noise=0
     if s in terminals:
         return {s: 1}
 
-    def apply_action(a):
+    def apply_action(s, a):
         return (s[0] + a[0], s[1] + a[1])
 
-    s_n = apply_action(a)
+    s_n = apply_action(s, a)
     noise_action = [i for i in A if i != a]
 
-    sn_iter = (apply_action(a) for a in noise_action)
+    sn_iter = (apply_action(s, a) for a in noise_action)
     noise_next_states = list(filter(is_valid, sn_iter))
     p_n = noise / (len(A) - 1)
     num_invalid_action = len(noise_action) - len(noise_next_states)
@@ -243,7 +244,7 @@ class ValueIteration():
 
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
-        V_init = {s: 0 for s in S}
+        V_init = {s: 1 for s in S}
         delta = 0
         for i in range(max_iter):
             V = V_init.copy()
@@ -313,7 +314,7 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 if __name__ == '__main__':
     Q_merge = {}
     # PI_merge = co.OrderedDict()
-    gridSize = 8
+    gridSize = 15
     numSheeps = 2
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
@@ -331,12 +332,12 @@ if __name__ == '__main__':
     t = 0
     for sheep_states in sheep_states_all:
         t += 1
-        sheep_states = ((6, 3), (3, 6))
+
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
         env = GridWorld("test", nx=gridSize, ny=gridSize)
-        sheepValue = {s: 100 for s in sheep_states}
+        sheepValue = {s: 30 for s in sheep_states}
         env.add_feature_map("goal", sheepValue, default=0)
         env.add_terminals(list(sheep_states))
 
@@ -345,12 +346,11 @@ if __name__ == '__main__':
         # A = ((1, 0), (0, 1), (-1, 0), (0, -1), (0, 0), (1,1), (1,-1), (-1,1), (-1,-1))
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
 
-        mode = 0.9
+        noise = 0.1
+        mode = 1 - noise
         transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        noise = 0.1
-        # transition_function = ft.partial(
-        #     grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
+        # transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
         T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
@@ -385,34 +385,35 @@ if __name__ == '__main__':
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
 
         Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        for wolf_state in S:
-            Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
+        # for wolf_state in S:
+        #     Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
 
         Q_merge.update(Q_dict)
+        # Q_merge = {Q_merge, **Q_dict}
 
 # viz Q
-        Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        for wolf_state in S:
-            Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
+        # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        # for wolf_state in S:
+        #     Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
 
-        fig, ax = plt.subplots(1, 1, tight_layout=True)
-        fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
-        draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
-        # draw_V(ax, V, S)
-        prefix = "result" + str(sheep_states) + 'noise' + str(noise)
-        name = "wolf_".join((prefix, "policy.png"))
-        module_path = os.path.dirname(os.path.abspath(__file__))
-        # figure_path = os.path.join(module_path, "figures")
-        path = os.path.join(module_path, name)
-        print ("saving policy figure at %s" % path)
-        plt.savefig(path, dpi=300)
-
-        print (Q_dict)
+        # fig, ax = plt.subplots(1, 1, tight_layout=True)
+        # fig.set_size_inches(env.nx * 3, env.ny * 3, forward=True)
+        # draw_policy_4d_softmax(ax, Q_dict, V=V, S=S, A=A)
+        # # draw_V(ax, V, S)
+        # prefix = "result" + str(sheep_states) + 'noise' + str(noise)
+        # name = "wolf_".join((prefix, "policy.png"))
+        # module_path = os.path.dirname(os.path.abspath(__file__))
+        # # figure_path = os.path.join(module_path, "figures")
+        # path = os.path.join(module_path, name)
+        # print ("saving policy figure at %s" % path)
+        # plt.savefig(path, dpi=300)
+        # print(Q_dict[((1,6),sheep_states)])
+        # print (Q_dict)
 
 # save value
     # print (len(Q_merge))
     dirName = os.path.dirname(os.path.abspath(__file__))
-    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseTwoStep' + 'Gird' + str(env.nx)
+    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseTwoStepUnnormalQReward30' + 'Gird' + str(env.nx)
     pickle_dump_single_result(
         dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
 

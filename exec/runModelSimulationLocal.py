@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import HumanController, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise
+from src.controller import HumanController, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise
 from src.simulationTrial import NormalTrial, SpecialTrial
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -31,7 +31,12 @@ def main():
 
     screenWidth = 600
     screenHeight = 600
-    screen = pg.display.set_mode((screenWidth, screenHeight))
+    fullScreen = False
+    renderOn = False
+    initializeScreen = InitializeScreen(screenWidth, screenHeight, fullScreen)
+    screen = initializeScreen()
+    pg.mouse.set_visible(False)
+
     leaveEdgeSpace = 2
     lineWidth = 1
     backgroundColor = [205, 255, 204]
@@ -56,7 +61,6 @@ def main():
     intentionDis = [2, 4, 6]
     direction = [45, 135, 225, 315]
 
-
     distanceDiffList = [0, 2, 4]
     minDisList = range(5, 15)
     intentionedDisToTargetList = [2, 4, 6]
@@ -71,7 +75,22 @@ def main():
     midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    for i in range(20):
+    policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1WolfToTwoSheepNoiseTwoStepGird15_policy.pkl"), "rb"))
+    softmaxBeta = 100
+
+    modelController = ModelController(policy, gridSize, softmaxBeta)
+    controller = modelController
+
+    checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
+    noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
+    normalNoise = NormalNoise(noiseActionSpace, gridSize)
+
+    sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
+    normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
+    specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+
+    random.seed(1447)
+    for i in range(30):
         print(i)
         expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
         numExpTrial = len(expDesignValues)
@@ -85,7 +104,6 @@ def main():
         conditionList = list(expTrials + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
         numNormalTrials = len(conditionList)
 
-
         random.shuffle(conditionList)
         conditionList.append(expCondition)
 
@@ -96,31 +114,18 @@ def main():
         noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
 
-###deubg
-        conditionList = [expCondition]*27
-        noiseDesignValues = ['special']*27
-
-###debug
-
-        policy = pickle.load(open(os.path.join(machinePolicyPath , "noise0.1WolfToTwoSheepNoiseTwoStepGird15_policy.pkl"), "rb"))
-        softmaxBeta = -1
-        modelController = ModelController(policy, gridSize, softmaxBeta)
-        controller = modelController
-
-        checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
-        noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
-        normalNoise = NormalNoise(noiseActionSpace, gridSize)
-        sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
-        normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
-        specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+# deubg
+        # conditionList = [expCondition]*27
+        # noiseDesignValues = ['special']*27
+# debug
 
         experimentValues = co.OrderedDict()
-
-        experimentValues["name"] = "maxModelSpecial" + str(i)
+        experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i) + '_seed1447'
         writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
         writer = WriteDataFrameToCSV(writerPath)
         experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
         experiment(noiseDesignValues, conditionList)
+
 
 if __name__ == "__main__":
     main()

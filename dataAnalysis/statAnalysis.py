@@ -37,10 +37,10 @@ if __name__ == '__main__':
     statDF['firstIntentionConsistFinalGoalNormal'] = dfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
     statDF['firstIntentionConsistFinalGoalSpecail'] = dfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
 
-    # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+    dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
     # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
     # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
-    dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
+    # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
 
     statDF['avoidCommitmentRatio'] = dfExpTrail.groupby('name')["avoidCommitmentRatio"].mean()
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # print(statDF)
     # statDF.to_csv(os.path.join(resultsPath, 'statDF.csv'))
 
-    dataPath = os.path.join(resultsPath, 'maxModelNoise0.1')
+    dataPath = os.path.join(resultsPath, 'softmaxBeta250')
     # dataPath = os.path.join(resultsPath, 'softMaxBeta2.5ModelNoise0.1')
 
     modelDf = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -69,10 +69,10 @@ if __name__ == '__main__':
     statModelDf['firstIntentionConsistFinalGoalNormal'] = modelDfNormailTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
     statModelDf['firstIntentionConsistFinalGoalSpecail'] = modelDfSpecialTrail.groupby('name')["firstIntentionConsistFinalGoal"].mean()
 
-    # dfExpTrailModel = modelDf[(modelDf['areaType'] == 'expRect') & (modelDf['noiseNumber'] != 'special')]
+    dfExpTrailModel = modelDf[(modelDf['areaType'] == 'expRect') & (modelDf['noiseNumber'] != 'special')]
     # dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] != 'none')]
     # dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] == 'midLine')]
-    dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] == 'straightLine')]
+    # dfExpTrailModel = modelDf[(modelDf['distanceDiff'] == 0) & (modelDf['areaType'] == 'straightLine')]
 
     # dfExpTrailModel = modelDf
 

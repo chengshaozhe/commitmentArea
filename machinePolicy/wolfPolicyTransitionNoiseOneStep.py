@@ -317,7 +317,6 @@ if __name__ == '__main__':
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
 
-
     # df_path = os.path.dirname(os.path.abspath(__file__)) + '/position.xlsx'
     # df_path = "/Users/chengshaozhe/Downloads/allPosition.csv"
     # df = pd.read_csv(df_path)
@@ -334,7 +333,7 @@ if __name__ == '__main__':
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
         env = GridWorld("test", nx=gridSize, ny=gridSize)
-        sheepValue = {s: 100 for s in sheep_states}
+        sheepValue = {s: 30 for s in sheep_states}
         env.add_feature_map("goal", sheepValue, default=0)
         env.add_terminals(list(sheep_states))
 
@@ -346,7 +345,7 @@ if __name__ == '__main__':
         # mode = 0.9
         # transition_function = ft.partial(grid_transition_stochastic, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        noise = 0
+        noise = 0.1
         transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
@@ -382,12 +381,12 @@ if __name__ == '__main__':
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
 
         Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-        for wolf_state in S:
-            Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
+        # for wolf_state in S:
+        #     Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
 
         Q_merge.update(Q_dict)
 
-#viz Q
+# viz Q
         # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
         # for wolf_state in S:
         #     Q_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
@@ -409,6 +408,6 @@ if __name__ == '__main__':
 # save value
     # print (len(Q_merge))
     dirName = os.path.dirname(os.path.abspath(__file__))
-    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseOneStep' + 'Gird' + str(env.nx)
+    prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseOneStepUnnormalQReward30' + 'Gird' + str(env.nx)
     pickle_dump_single_result(
         dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
