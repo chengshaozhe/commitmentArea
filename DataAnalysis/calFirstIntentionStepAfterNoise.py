@@ -7,29 +7,27 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 
-from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention, calculateSE, calculateFirstIntentionRatio, calculateFirstIntentionStep
+from dataAnalysis import calculateFirstIntention, calculateSE, calculateFirstIntentionRatio, calculateFirstIntentionStep
 
 
-def isGridsNotALine(playerGrid, bean1Grid, bean2Grid):
+def isGridsALine(playerGrid, bean1Grid, bean2Grid):
     line = np.array((playerGrid, bean1Grid, bean2Grid)).T
-    if len(set(line[0])) != len(line[0]) or len(set(line[1])) != len(line[1]):
-        return False
-    else:
+    xcoors = line[0]
+    ycoors = line[1]
+    if len(set(xcoors)) != len(xcoors) or len(set(ycoors)) != len(ycoors):
         return True
+    else:
+        return False
 
 
 def calFirstIntentionConsistAfterNoise(trajectory, noisePoints, target1, target2, goalList):
     trajectory = list(map(tuple, trajectory))
     afterNoiseGrid = trajectory[noisePoints]
-    if isGridsNotALine(afterNoiseGrid, target1, target2):
-        afterNoiseIntentionConsis = 1 if goalList[noisePoints + 2] == calculateFirstIntention(goalList) else 0
+    if isGridsALine(afterNoiseGrid, target1, target2):
+        afterNoiseIntentionConsis = 1 if goalList[noisePoints] == calculateFirstIntention(goalList) else 0
     else:
         afterNoiseIntentionConsis = 1 if goalList[noisePoints + 1] == calculateFirstIntention(goalList) else 0
     return afterNoiseIntentionConsis
-
-# def calFirstIntentionConsistAfterNoise(noisePoints, goalList):
-#     afterNoiseIntentionConsis = 1 if goalList[noisePoints + 1] == calculateFirstIntention(goalList) else 0
-#     return afterNoiseIntentionConsis
 
 
 def calFirstIntentionStepRationAfterNoise(noisePoints, goalList):
@@ -61,12 +59,12 @@ if __name__ == '__main__':
 
         statDF = pd.DataFrame()
         statDF['afterNoiseIntentionConsisSpecail'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsis"].mean()
-        statDF['afterNoiseFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
+        # statDF['afterNoiseFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
 
         # statDF.to_csv("statDF.csv")
 
         print('afterNoiseIntentionConsisSpecail', np.mean(statDF['afterNoiseIntentionConsisSpecail']))
-        print('afterNoiseFirstIntentionStep', np.mean(statDF['afterNoiseFirstIntentionStep']))
+        # print('afterNoiseFirstIntentionStep', np.mean(statDF['afterNoiseFirstIntentionStep']))
 
         print('')
 
@@ -74,7 +72,7 @@ if __name__ == '__main__':
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
-    xlabels = ['afterNoiseIntentionConsis', 'afterNoiseFirstIntentionStepRation']
+    xlabels = ['afterNoiseIntentionConsisSpecail']
     lables = participants
     x = np.arange(len(xlabels))
     totalWidth, n = 0.6, len(participants)

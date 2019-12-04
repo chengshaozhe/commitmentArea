@@ -90,14 +90,6 @@ def grid_transition_stochastic(s=(), a=(), noiseSpace=[], is_valid=None, termina
     if s in terminals:
         return {s: 1}
 
-
-    # if s in terminals:
-    #     return {(-1,-1): 1}
-
-    # if s in [(-1,-1)]:
-    #     return {(-1,-1): 1}
-
-
     def apply_action(s, noise):
         return (s[0] + noise[0], s[1] + noise[1])
 
@@ -280,7 +272,7 @@ class ValueIteration():
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
         S_iter = tuple(filter(lambda s:s not in self.terminals, S))
-        V_init={s: 1 for s in S_iter}
+        V_init={s: 0 for s in S_iter}
         Vterminals = {s:0 for s in self.terminals}
         V_init.update(Vterminals)
         delta = 0
@@ -289,8 +281,8 @@ class ValueIteration():
             for s in S_iter:
                 V_init[s] = max([sum([p * (R[s][a][s_n] + gamma * V[s_n])
                                       for (s_n, p) in T[s][a].items()]) for a in A])
-            delta = np.array([V[s] - V_init[s] for s in S_iter])
-            if np.all(delta) < epsilon * (1 - gamma) / gamma:
+            delta = np.array([abs(V[s] - V_init[s]) for s in S_iter])
+            if np.all(delta < epsilon * (1 - gamma) / gamma):
                 break
         return V
 
@@ -362,8 +354,8 @@ if __name__ == '__main__':
     for sheep_states in sheep_states_all:
         t += 1
         # sheep_states = ((6, 2), (6, 6))
-        sheep_states = ((7, 3), (3, 7))
-        # sheep_states = ((4, 2), (2, 4))
+        # sheep_states = ((7, 3), (3, 7))
+        sheep_states = ((4, 2), (2, 4))
 
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
@@ -379,7 +371,7 @@ if __name__ == '__main__':
         A = ((1, 0), (0, 1), (-1, 0), (0, -1))
         noiseSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
-        noise = 0.1
+        noise = 0
         mode = 1 - noise
         # transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
@@ -447,16 +439,16 @@ if __name__ == '__main__':
         # # print (QHeatMap)
         # normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
 
-        # mapValue = 'V'
+        mapValue = 'V'
 
-        # heatMapValue = eval(mapValue)
-        # y = dict_to_array(heatMapValue)
-        # y = y.reshape((gridSize, gridSize))
-        # df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
-        # sns.heatmap(df, annot=True, fmt='.3f')
-        # plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
-        # plt.show()
-        # break
+        heatMapValue = eval(mapValue)
+        y = dict_to_array(heatMapValue)
+        y = y.reshape((gridSize, gridSize))
+        df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
+        sns.heatmap(df, annot=True, fmt='.3f')
+        plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
+        plt.show()
+        break
 
 # viz Q
         # Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
