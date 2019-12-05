@@ -366,9 +366,9 @@ if __name__ == '__main__':
 
         noise = 0.1
         mode = 1-noise
-        transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
+        # transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        # transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
+        transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
         T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]

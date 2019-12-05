@@ -139,12 +139,6 @@ class SpecialTrial():
 
             if len(trajectory) > 1:
                 noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
-<<<<<<< HEAD
-                # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoiseNoLine(realPlayerGrid, bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
-=======
-                # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid, bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
->>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338
-
                 if noisePlayerGrid:
                     realPlayerGrid = self.checkBoundary(noisePlayerGrid)
                 else:
