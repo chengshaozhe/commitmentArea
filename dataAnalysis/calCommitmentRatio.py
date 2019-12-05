@@ -16,6 +16,7 @@ if __name__ == '__main__':
     stdList = []
     participants = ['human', 'softmaxBeta1', 'softmaxBeta2.5']
 
+
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
