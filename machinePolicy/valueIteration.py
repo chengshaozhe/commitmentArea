@@ -86,7 +86,6 @@ def grid_transition(s, a, is_valid=None, terminals=()):
 
 
 def grid_transition_stochastic(s=(), a=(), noiseSpace=[], is_valid=None, terminals=(), mode=0.9):
-
     if s in terminals:
         return {s: 1}
 
@@ -251,7 +250,7 @@ class ValueIteration():
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
         S_iter = tuple(filter(lambda s:s not in self.terminals, S))
-        V_init={s: 0 for s in S_iter}
+        V_init={s: 1 for s in S_iter}
         Vterminals = {s:0 for s in self.terminals}
         V_init.update(Vterminals)
         delta = 0
@@ -322,7 +321,7 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
 
 if __name__ == '__main__':
     Q_merge = {}
-    gridSize = 9
+    gridSize = 15
     numSheeps = 2
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
@@ -334,7 +333,7 @@ if __name__ == '__main__':
         t += 1
         # sheep_states = ((6, 2), (6, 6))
         # sheep_states = ((7, 3), (3, 7))
-        sheep_states = ((4, 2), (2, 4))
+        # sheep_states = ((4, 2), (2, 4))
 
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
@@ -352,9 +351,9 @@ if __name__ == '__main__':
 
         noise = 0.1
         mode = 1 - noise
-        # transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
+        transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
+        # transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
         T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
@@ -400,11 +399,11 @@ if __name__ == '__main__':
 
         Q_dict_output = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
 
-        normlizedQ_dict = {}
-        for wolf_state in S:
-            normlizedQ_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
+        # normlizedQ_dict = {}
+        # for wolf_state in S:
+        #     normlizedQ_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
 
-        actionProbMax = {s: max(normlizedQ_dict[s].values()) for s in Q_dict.keys()}
+        # actionProbMax = {s: max(normlizedQ_dict[s].values()) for s in Q_dict.keys()}
 
         # for wolf_state in S:
         #     Q_dict[(wolf_state, sheep_states)] = {action: np.divide(Q_dict[(wolf_state, sheep_states)][action], np.sum(list(Q_dict[(wolf_state, sheep_states)].values()))) for action in A}
@@ -453,11 +452,11 @@ if __name__ == '__main__':
         # print (Q_dict[(3, 3)])
 
 # save value
-    # print (len(Q_merge))
-    # dirName = os.path.dirname(os.path.abspath(__file__))
-    # prefix = 'noise' + str(noise) + 'WolfToTwoSheepNoiseTwoStep' + 'Gird' + str(env.nx)
-    # pickle_dump_single_result(
-    #     dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
+    print (len(Q_merge))
+    dirName = os.path.dirname(os.path.abspath(__file__))
+    prefix = 'noise' + str(noise) + 'commitArea' + 'Gird' + str(env.nx)
+    pickle_dump_single_result(
+        dirc=dirName, prefix=prefix, name="policy", data=Q_merge)
 
-    # endTime = time.time()
-    # print("Time taken {} seconds".format((endTime - startTime)))
+    endTime = time.time()
+    print("Time taken {} seconds".format((endTime - startTime)))

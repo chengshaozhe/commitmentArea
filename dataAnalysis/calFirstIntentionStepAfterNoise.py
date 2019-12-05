@@ -41,7 +41,7 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
-    participants = ['human', 'softMaxBeta100']
+    participants = ['human', 'softmaxBeta1', 'softmaxBeta2.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)

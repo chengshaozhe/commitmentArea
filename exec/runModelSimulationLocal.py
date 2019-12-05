@@ -75,56 +75,56 @@ def main():
     midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1WolfToTwoSheepNoiseTwoStepGird15_policy.pkl"), "rb"))
-    softmaxBeta = 2.5
+    policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
 
-    modelController = ModelController(policy, gridSize, softmaxBeta)
-    controller = modelController
 
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
-
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
-    normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
-    specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
-    random.seed(1447)
-    for i in range(30):
-        print(i)
-        expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
-        numExpTrial = len(expDesignValues)
-        random.shuffle(expDesignValues)
-        expDesignValues.append(random.choice(expDesignValues))
-        createExpCondition = CreatExpCondition(direction, gridSize)
-        samplePositionFromCondition = SamplePositionFromCondition(df, createExpCondition, expDesignValues)
-        numExpTrial = len(expDesignValues) - 1
-        numControlTrial = int(numExpTrial * 2 / 3)
-        expTrials = [expCondition] * numExpTrial
-        conditionList = list(expTrials + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
-        numNormalTrials = len(conditionList)
+    softmaxBetaList = [5,10]
+    for softmaxBeta in softmaxBetaList:
 
-        random.shuffle(conditionList)
-        conditionList.append(expCondition)
+        for i in range(30):
+            print(i)
+            expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
+            numExpTrial = len(expDesignValues)
+            random.shuffle(expDesignValues)
+            expDesignValues.append(random.choice(expDesignValues))
+            createExpCondition = CreatExpCondition(direction, gridSize)
+            samplePositionFromCondition = SamplePositionFromCondition(df, createExpCondition, expDesignValues)
+            numExpTrial = len(expDesignValues) - 1
+            numControlTrial = int(numExpTrial * 2 / 3)
+            expTrials = [expCondition] * numExpTrial
+            conditionList = list(expTrials + [rectCondition] * numExpTrial + [straightLineCondition] * numControlTrial + [midLineCondition] * numControlTrial + [noAreaCondition] * numControlTrial)
+            numNormalTrials = len(conditionList)
 
-        numTrialsPerBlock = 3
-        noiseCondition = list(permutations([1, 2, 0], numTrialsPerBlock))
-        noiseCondition.append((1, 1, 1))
-        blockNumber = int(numNormalTrials / numTrialsPerBlock)
-        noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
+            random.shuffle(conditionList)
+            conditionList.append(expCondition)
+
+            numTrialsPerBlock = 3
+            noiseCondition = list(permutations([1, 2, 0], numTrialsPerBlock))
+            noiseCondition.append((1, 1, 1))
+            blockNumber = int(numNormalTrials / numTrialsPerBlock)
+            noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
 
-# deubg
-        # conditionList = [expCondition]*27
-        # noiseDesignValues = ['special']*27
-# debug
+    # deubg
+            # conditionList = [expCondition]*27
+            # noiseDesignValues = ['special']*27
+    # debug
+            modelController = ModelController(policy, gridSize, softmaxBeta)
+            controller = modelController
+            normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
+            specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
-        experimentValues = co.OrderedDict()
-        experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i) + '_seed1447'
-        writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
-        writer = WriteDataFrameToCSV(writerPath)
-        experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
-        experiment(noiseDesignValues, conditionList)
+            experimentValues = co.OrderedDict()
+            experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i)
+            writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
+            writer = WriteDataFrameToCSV(writerPath)
+            experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
+            experiment(noiseDesignValues, conditionList)
 
 
 if __name__ == "__main__":

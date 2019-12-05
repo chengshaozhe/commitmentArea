@@ -15,11 +15,7 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
-<<<<<<< HEAD:dataAnalysis/calAvoidCommitmentRatio.py
-    participants = ['human', 'softmaxBeta250', 'maxModelNoise0', 'maxModelNoise0.1TwoStep']
-=======
-    participants = ['maxModelNoise0', 'maxModelNoise0.1OneStep', 'maxModelNoise0.1TwoStep', 'maxModelNoise0.2OneStep']
->>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338:DataAnalysis/calAvoidCommitmentRatio.py
+    participants = ['human', 'softmaxBeta1', 'softmaxBeta2.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -34,28 +30,21 @@ if __name__ == '__main__':
         print(participant, nubOfSubj)
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-<<<<<<< HEAD:dataAnalysis/calAvoidCommitmentRatio.py
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
 
-=======
-        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
->>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338:DataAnalysis/calAvoidCommitmentRatio.py
+
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 2)]
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
-<<<<<<< HEAD:dataAnalysis/calAvoidCommitmentRatio.py
 
-        dfExpTrail = df[((df['distanceDiff'] == 0) & df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
-=======
         # dfExpTrail = df[df['areaType'] == 'rect']
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine') & (df['intentionedDisToTargetMin'] > 2)]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 1)]
->>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338:DataAnalysis/calAvoidCommitmentRatio.py
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['areaType'] == 'rect')]
