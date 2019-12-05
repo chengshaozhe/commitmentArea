@@ -30,6 +30,17 @@ def calFirstIntentionConsistAfterNoise(trajectory, noisePoints, target1, target2
     return afterNoiseIntentionConsis
 
 
+def calFirstIntentionInConsistAfterNoise(noisePoints, goalList):
+    afterNoiseGoalList = goalList[noisePoints:]
+    afterNoiseIntentionInConsis = 1 if calculateFirstIntention(afterNoiseGoalList) != calculateFirstIntention(goalList) else 0
+    return afterNoiseIntentionInConsis
+
+
+def calFirstIntentionDelayConsistAfterNoise(trajectory, noisePoints, target1, target2, goalList):
+    afterNoiseIntentionDelayConsis = 1 if not calFirstIntentionConsistAfterNoise(trajectory, noisePoints, target1, target2, goalList) and not calFirstIntentionInConsistAfterNoise(noisePoints, goalList) else 0
+    return afterNoiseIntentionDelayConsis
+
+
 def calFirstIntentionStepRationAfterNoise(noisePoints, goalList):
     afterNoiseGoalList = goalList[noisePoints:]
     afterNoiseFirstIntentionStep = calculateFirstIntentionStep(afterNoiseGoalList)
@@ -41,7 +52,7 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
-    participants = ['human', 'softMaxBeta100']
+    participants = ['human', 'maxModelNoNoise']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -55,15 +66,22 @@ if __name__ == '__main__':
 
         dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
 
-        dfSpecialTrail["afterNoiseFirstIntentionStep"] = dfSpecialTrail.apply(lambda x: calFirstIntentionStepRationAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
+        dfSpecialTrail["afterNoiseIntentionInConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionInConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
+
+        dfSpecialTrail["afterNoiseIntentionConsisDelay"] = dfSpecialTrail.apply(lambda x: calFirstIntentionDelayConsistAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
+
+        # dfSpecialTrail["afterNoiseFirstIntentionStep"] = dfSpecialTrail.apply(lambda x: calFirstIntentionStepRationAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
 
         statDF = pd.DataFrame()
-        statDF['afterNoiseIntentionConsisSpecail'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsis"].mean()
+        statDF['afterNoiseIntentionConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsis"].mean()
+        statDF['afterNoiseIntentionConsisDelay'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsisDelay"].mean()
+        statDF['afterNoiseIntentionInConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionInConsis"].mean()
+
         # statDF['afterNoiseFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
 
         # statDF.to_csv("statDF.csv")
 
-        print('afterNoiseIntentionConsisSpecail', np.mean(statDF['afterNoiseIntentionConsisSpecail']))
+        print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
         # print('afterNoiseFirstIntentionStep', np.mean(statDF['afterNoiseFirstIntentionStep']))
 
         print('')
@@ -71,8 +89,9 @@ if __name__ == '__main__':
         stats = statDF.columns
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
+        print(statsList)
 
-    xlabels = ['afterNoiseIntentionConsisSpecail']
+    xlabels = ['consistInLeastSteps', 'consisWithDelaySteps', 'inconsist']
     lables = participants
     x = np.arange(len(xlabels))
     totalWidth, n = 0.6, len(participants)
@@ -84,5 +103,5 @@ if __name__ == '__main__':
 
     plt.ylim((0, 1))
     plt.legend(loc='best')
-    plt.title('afterNoise first step intention consistency')  # Intention Consistency
+    plt.title('afterNoise intention consistency')  # Intention Consistency
     plt.show()
