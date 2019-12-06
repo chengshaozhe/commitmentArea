@@ -128,7 +128,7 @@ class SpecialTrial():
         self.drawNewState(bean1Grid, bean2Grid, initialPlayerGrid)
         pg.event.set_allowed([pg.KEYDOWN, pg.KEYUP, pg.QUIT])
 
-        avoidCommitmentZone = calculateAvoidCommitmnetZone(initialPlayerGrid, bean1Grid, bean2Grid)
+        avoidCommitmentZone = (initialPlayerGrid, bean1Grid, bean2Grid)
         pause = True
         realPlayerGrid = initialPlayerGrid
         while pause:

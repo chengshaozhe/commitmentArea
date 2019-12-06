@@ -50,16 +50,9 @@ if __name__ == '__main__':
     # print(statDF)
     # statDF.to_csv(os.path.join(resultsPath, 'statDF.csv'))
 
-<<<<<<< HEAD:dataAnalysis/statAnalysis.py
-    dataPath = os.path.join(resultsPath, 'softmaxBeta250')
-    # dataPath = os.path.join(resultsPath, 'softMaxBeta2.5ModelNoise0.1')
-
-    modelDf = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
-=======
-    modelPath = os.path.join(resultsPath, 'maxModelNoise0.1')
+    modelPath = os.path.join(resultsPath, 'softmaxBeta2.5')
     # modelPath = os.path.join(resultsPath, 'maxModelNoNoise')
     modelDf = pd.concat(map(pd.read_csv, glob.glob(os.path.join(modelPath, '*.csv'))), sort=False)
->>>>>>> 6d3bdc4acb0321d071beb2e9200619ce7a277338:DataAnalysis/statAnalysis.py
 
     modelDf["firstIntentionConsistFinalGoal"] = modelDf.apply(lambda x: calculateFirstIntentionConsistency(eval(x['goal'])), axis=1)
     modelDf['avoidCommitmentZone'] = modelDf.apply(lambda x: calculateAvoidCommitmnetZone(eval(x['playerGrid']), eval(x['target1']), eval(x['target2'])), axis=1)
