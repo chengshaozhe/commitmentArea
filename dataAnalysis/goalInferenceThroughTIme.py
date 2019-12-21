@@ -37,7 +37,7 @@ class GoalInfernce:
     def __call__(self, trajectory, aimAction, target1, target2):
         trajectory = list(map(tuple, trajectory))
         goalPosteriorList = []
-        priorA = initPrior[0]
+        priorA = self.initPrior[0]
         for playerGrid, action in zip(trajectory, aimAction):
             likelihoodA = self.goalPolicy(playerGrid, target1).get(action)
             likelihoodB = self.goalPolicy(playerGrid, target2).get(action)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     # goalPosteriorList = goalInfernce(trajectory, aimAction, target1, target2)
     # print(len(goalPosteriorList))
-    # firstIntentionStep = calFirstIntentionStep(goalPosteriorList)
+    # firstIntentionStep = calFirstIntentio nStep(goalPosteriorList)
     # firstIntentionStepRatio = calFirstIntentionStepRatio(goalPosteriorList)
     # goalPosteriorList.insert(0, initPrior)
     # goalPosteriori = np.array(goalPosteriorList).T

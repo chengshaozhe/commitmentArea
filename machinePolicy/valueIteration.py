@@ -268,7 +268,7 @@ class ValueIteration():
     def __call__(self, S, A, T, R):
         gamma, epsilon, max_iter = self.gamma, self.epsilon, self.max_iter
         S_iter = tuple(filter(lambda s:s not in self.terminals, S))
-        V_init={s: 0 for s in S_iter}
+        V_init={s: 1 for s in S_iter}
         Vterminals = {s:0 for s in self.terminals}
         V_init.update(Vterminals)
         delta = 0
@@ -346,8 +346,8 @@ if __name__ == '__main__':
     t = 0
     for sheep_states in sheep_states_all:
         t += 1
-        # sheep_states = ((6, 2), (6, 6))
-        sheep_states = ((6, 3), (3, 6))
+        sheep_states = ((6,2 ), (6, 6))
+        # sheep_states = ((6, 3), (3, 6))
         # sheep_states = ((4, 2), (2, 4))
 
         print(sheep_states)
@@ -366,9 +366,9 @@ if __name__ == '__main__':
 
         noise = 0.1
         mode = 1-noise
-        # transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
+        transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=sheep_states, is_valid=env.is_state_valid, mode=mode)
 
-        transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
+        # transition_function = ft.partial(grid_transition_noise, A=A, terminals=sheep_states, is_valid=env.is_state_valid, noise=noise)
 
         T = {s: {a: transition_function(s, a) for a in A} for s in S}
         T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]

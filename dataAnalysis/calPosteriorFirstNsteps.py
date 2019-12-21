@@ -175,45 +175,27 @@ if __name__ == '__main__':
         goalPosterior = np.array(goalPosteriorList)
 
         goalPosteriorMean = np.mean(goalPosterior, axis=0)
-        goalPosteriorStd = np.divide(np.std(goalPosterior, axis=0, ddof=1), np.sqrt(len(goalPosterior) - 1))
-        # goalPosteriorStd = np.std(goalPosterior, axis=0)
+        # goalPosteriorStd = np.divide(np.std(goalPosterior, axis=0, ddof=1), np.sqrt(len(goalPosterior) - 1))
+        goalPosteriorStd = np.std(goalPosterior, axis=0)
 
-        print(goalPosterior)
-        print(goalPosteriorMean)
-        print(goalPosteriorStd)
+        # print(len(np.where(goalPosterior > 0.75)[0]) / goalPosterior.size)
+        # print(len(np.where(goalPosterior <= 0.25)[0]) / goalPosterior.size)
+
+        # print(goalPosterior)
+        # print(goalPosteriorMean)
+        # print(goalPosteriorStd)
 
         statsList.append(goalPosteriorMean)
         stdList.append(goalPosteriorStd)
-        # x = np.concatenate([np.divide(np.arange(len(goalPosterior)), len(goalPosterior)) for goalPosterior in goalPosteriorList]).flatten()
-        # y = np.concatenate(np.array(goalPosteriorList)).flatten()
 
-        # xx = np.array(list(zip(list(x), list(y))))
 
-        # i = np.argsort(xx, axis=0)
-        # b = xx.T
-        # c = i.T[0]
-        # gg = b[:, c]
-        # print(gg)
-
-        # from scipy import interpolate
-        # x = gg[0]
-        # y = gg[1]
-        # from scipy.interpolate import spline
-        # xnew = np.linspace(0., 1., 20)
-        # power_smooth = spline(x, y, xnew)
-        # plt.plot(xnew, power_smooth)
-        # plt.show()
-        # f = interpolate.interp1d(x, y, kind='quadratic')
-        # ynew = f(xnew)
-        # plt.plot(xnew, ynew, 'ro')
-        # plt.plot(x, y, 'ro')
-        # plt.show()
     lables = participants
     xnew = np.arange(Nsteps)
     # xnew = np.linspace(0., 1., 30)
-    for i in range(len(statsList)):
-        plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
-
+    # for i in range(len(statsList)):
+    #     plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
+    for i in range(len(stdList)):
+        plt.plot(xnew, stdList[i], label=lables[i])
     # xlabels = ['firstIntentionStepRatio']
     # labels = participants
     # x = np.arange(len(xlabels))
@@ -223,8 +205,9 @@ if __name__ == '__main__':
     # for i in range(len(statsList)):
     #     plt.bar(x + width * i, statsList[i], yerr=stdList[i], width=width, label=labels[i])
     # plt.xticks(x, xlabels)
-    plt.ylim((0, 1))
+    plt.ylim((0, 0.5))
     plt.legend(loc='best')
+    plt.title('SD')
 
-    plt.title('inferred Intention first N steps')
+    # plt.title('inferred Intention first N steps')
     plt.show()

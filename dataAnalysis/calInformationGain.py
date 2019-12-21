@@ -67,40 +67,14 @@ class GoalInfernce:
 
 
 def calInformationGain(baseProb, conditionProb):
+    infoGain = entropy(baseProb) - entropy(conditionProb)
+    return infoGain
 
-    return entropy(baseProb) - entropy(conditionProb)
 
-
-# class CalculateActionInformation:
-#     def __init__(self, initPrior, goalPolicy, basePolicy):
-#         self.initPrior = initPrior
-#         self.goalPolicy = goalPolicy
-#         self.basePolicy = basePolicy
-
-#     def __call__(self, trajectory, aimAction, target1, target2):
-#         trajectory = list(map(tuple, trajectory))
-#         targets = list([target1, target2])
-#         expectedInfoList = []
-#         cumulatedInfoList = []
-#         priorList = self.initPrior
-#         for index, (playerGrid, action) in enumerate(zip(trajectory, aimAction)):
-#             likelihoodList = [self.goalPolicy(playerGrid, goal).get(action) for goal in targets]
-#             posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
-#             evidence = sum(posteriorUnnormalized)
-
-#             posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
-#             prior = posteriorList
-
-#             goalProbList = [list(self.goalPolicy(playerGrid, goal).values()) for goal in targets]
-#             baseProb = list(self.basePolicy(playerGrid, target1, target2).values())
-
-#             # expectedInfo = sum([goalPosterior * KL(goalProb, baseProb) for goalPosterior, goalProb in zip(posteriorList, goalProbList)])
-#             expectedInfo = sum([goalPosterior * calInformationGain(baseProb, goalProb) for goalPosterior, goalProb in zip(posteriorList, goalProbList)])
-#             expectedInfoList.append(expectedInfo)
-#             cumulatedInfo = sum(expectedInfoList)
-#             cumulatedInfoList.append(cumulatedInfo)
-
-#         return cumulatedInfoList
+def calBasePolicy(posteriorList, actionProbList):
+    basePolicyList = [np.multiply(goalProb, actionProb) for goalProb, actionProb in zip(posteriorList, actionProbList)]
+    basePolicy = np.sum(basePolicyList, axis=0)
+    return basePolicy
 
 
 class CalculateActionInformation:
@@ -111,30 +85,69 @@ class CalculateActionInformation:
 
     def __call__(self, trajectory, aimAction, target1, target2):
         trajectory = list(map(tuple, trajectory))
-        goalPosteriorList = []
-        priorGoal = initPrior[0]
-
-        goal = trajectory[-1]
         targets = list([target1, target2])
-        noGoal = [target for target in targets if target != goal][0]
         expectedInfoList = []
         cumulatedInfoList = []
+        priorList = self.initPrior
         for playerGrid, action in zip(trajectory, aimAction):
-            likelihoodGoal = self.goalPolicy(playerGrid, goal).get(action)
-            likelihoodNogoal = self.goalPolicy(playerGrid, noGoal).get(action)
-            posteriorGoal = (priorGoal * likelihoodGoal) / ((priorGoal * likelihoodGoal) + (1 - priorGoal) * likelihoodNogoal)
-            priorGoal = posteriorGoal
+            likelihoodList = [self.goalPolicy(playerGrid, goal).get(action) for goal in targets]
+            posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
+            evidence = sum(posteriorUnnormalized)
 
-            goalProb = list(self.goalPolicy(playerGrid, goal).values())
-            baseProb = list(self.basePolicy(playerGrid, target1, target2).values())
+            posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
+            prior = posteriorList
 
-            # expectedInfo = posteriorGoal * KL(goalProb, baseProb)
-            expectedInfo = posteriorGoal * calInformationGain(baseProb, goalProb)
+            actionProbList = [list(self.goalPolicy(playerGrid, goal).values()) for goal in targets]
+            baseProb = calBasePolicy(posteriorList, actionProbList)
+
+            # baseProb = list(self.basePolicy(playerGrid, target1, target2).values())
+            # baseProb = list(self.goalPolicy(playerGrid, trajectory[-1]).values())
+            # baseProb = [0.25] * 4
+
+            # expectedInfo = sum([goalPosterior * KL(goalProb, baseProb) for goalPosterior, goalProb in zip(posteriorList, actionProbList)])
+            expectedInfo = sum([goalPosterior * calInformationGain(baseProb, goalProb) for goalPosterior, goalProb in zip(posteriorList, actionProbList)])
             expectedInfoList.append(expectedInfo)
             cumulatedInfo = sum(expectedInfoList)
             cumulatedInfoList.append(cumulatedInfo)
 
+        # cumulatedInfoList = [info / sum(cumulatedInfoList) for info in cumulatedInfoList]
+        # cumulatedInfoList = [(info - np.mean(cumulatedInfoList)) / np.std(cumulatedInfoList) for info in cumulatedInfoList]
         return cumulatedInfoList
+
+
+# class CalculateActionInformation:
+#     def __init__(self, initPrior, goalPolicy, basePolicy):
+#         self.initPrior = initPrior
+#         self.goalPolicy = goalPolicy
+#         self.basePolicy = basePolicy
+
+#     def __call__(self, trajectory, aimAction, target1, target2):
+#         trajectory = list(map(tuple, trajectory))
+#         goalPosteriorList = []
+#         priorGoal = initPrior[0]
+
+#         goal = trajectory[-1]
+#         targets = list([target1, target2])
+#         noGoal = [target for target in targets if target != goal][0]
+#         expectedInfoList = []
+#         cumulatedInfoList = []
+#         for playerGrid, action in zip(trajectory, aimAction):
+#             likelihoodGoal = self.goalPolicy(playerGrid, goal).get(action)
+#             likelihoodNogoal = self.goalPolicy(playerGrid, noGoal).get(action)
+#             posteriorGoal = (priorGoal * likelihoodGoal) / ((priorGoal * likelihoodGoal) + (1 - priorGoal) * likelihoodNogoal)
+#             priorGoal = posteriorGoal
+
+#             goalProb = list(self.goalPolicy(playerGrid, goal).values())
+#             baseProb = list(self.basePolicy(playerGrid, target1, target2).values())
+
+#             # expectedInfo = posteriorGoal * KL(goalProb, baseProb)
+#             expectedInfo = posteriorGoal * calInformationGain(baseProb, goalProb)
+#             expectedInfoList.append(expectedInfo)
+#             cumulatedInfo = sum(expectedInfoList)
+#             cumulatedInfoList.append(cumulatedInfo)
+
+#         cumulatedInfoList = [info / sum(cumulatedInfoList) for info in cumulatedInfoList]
+#         return cumulatedInfoList
 
 
 def calPosterior(goalPosteriorList):
@@ -181,16 +194,16 @@ class CalFirstIntentionStepRatio:
 if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
-    # Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
     softmaxBeta = 2.5
     softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
-    # basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
+    basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
     initPrior = [0.5, 0.5]
     inferThreshold = 0.95
     goalInfernce = GoalInfernce(initPrior, softmaxPolicy)
     calFirstIntentionStep = CalFirstIntentionStep(inferThreshold)
     calFirstIntentionStepRatio = CalFirstIntentionStepRatio(calFirstIntentionStep)
-    # calculateActionInformation = CalculateActionInformation(initPrior, softmaxPolicy, basePolicy)
+    calculateActionInformation = CalculateActionInformation(initPrior, softmaxPolicy, basePolicy)
 
     # trajectory = [(1, 7), [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7], [8, 7], [8, 9], [9, 9], [10, 9], [8, 9], [9, 9], [10, 9], [11, 9], [12, 9], [12, 8], [12, 7]]
     # aimAction = [(1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (0, -1), (0, -1)]
@@ -228,15 +241,15 @@ if __name__ == '__main__':
 
         df['goalPosteriorList'] = df.apply(lambda x: goalInfernce(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
-        # df['expectedInfoList'] = df.apply(lambda x: calculateActionInformation(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+        df['expectedInfoList'] = df.apply(lambda x: calculateActionInformation(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
         df['firstIntentionStep'] = df.apply(lambda x: calFirstIntentionStep(x['goalPosteriorList']), axis=1)
 
         df['firstIntentionStepRatio'] = df.apply(lambda x: calFirstIntentionStepRatio(x['goalPosteriorList']), axis=1)
 
-        df['goalPosterior'] = df.apply(lambda x: calPosterior(x['goalPosteriorList']), axis=1)
+        # df['goalPosterior'] = df.apply(lambda x: calPosterior(x['goalPosteriorList']), axis=1)
 
-        # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
+        df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
         dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         # dfExpTrail = df[(df['areaType'] == 'rect')]
@@ -300,10 +313,10 @@ if __name__ == '__main__':
     fontSize = 12
     plt.legend(loc='best', fontsize=fontSize)
     plt.xlabel('Time', fontsize=fontSize, color='black')
-    plt.ylabel('Probability of Intention', fontsize=fontSize, color='black')
+    plt.ylabel('Accumulated information gain', fontsize=fontSize, color='black')
 
     plt.xticks(fontsize=fontSize, color='black')
     plt.yticks(fontsize=fontSize, color='black')
 
-    plt.title('Inferred Intention Through Time', fontsize=fontSize, color='black')
+    plt.title('Commitment Through Time', fontsize=fontSize, color='black')
     plt.show()

@@ -14,7 +14,9 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta0.1','softmaxBeta0.5','softmaxBeta1','softmaxBeta2.5','softmaxBeta5']
+    statData = []
+    # participants = ['human', 'softmaxBeta0.1', 'softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5', 'softmaxBeta5']
+    participants = ['human','softmaxBeta0.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -40,6 +42,10 @@ if __name__ == '__main__':
         stats = statDF.columns
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
+        statData.append(statDF['firstIntentionConsistFinalGoalSpecail'])
+
+
+    # print(ttest_ind(statData[0], statData[1]))
 
     xlabels = ['normalTrial', 'specialTrial']
     lables = participants

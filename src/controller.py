@@ -204,6 +204,64 @@ class ModelController():
         return aimePlayerGrid, action
 
 
+def chooseMaxAcion(actionDict):
+    actionMaxList = [action for action in actionDict.keys() if
+                     actionDict[action] == np.max(list(actionDict.values()))]
+    action = random.choice(actionMaxList)
+    return action
+
+
+def chooseSoftMaxAction(actionDict, softmaxBeta):
+    actionValue = list(actionDict.values())
+    softmaxProbabilityList = calculateSoftmaxProbability(actionValue, softmaxBeta)
+    action = list(actionDict.keys())[
+        list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
+    return action
+
+
+def calBasePolicy(posteriorList, actionProbList):
+    basePolicyList = [np.multiply(goalProb, actionProb) for goalProb, actionProb in zip(posteriorList, actionProbList)]
+    basePolicy = np.sum(basePolicyList, axis=0)
+    return basePolicy
+
+
+class InferGoalPosterior:
+    def __init__(self, goalPolicy):
+        self.goalPolicy = goalPolicy
+
+    def __call__(self, playerGrid, action, target1, target2, priorList):
+        targets = list([target1, target2])
+
+        likelihoodList = [self.goalPolicy(playerGrid, goal).get(action) for goal in targets]
+        posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
+        evidence = sum(posteriorUnnormalized)
+
+        posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
+        return posteriorList
+
+
+class ModelControllerWithGoal:
+    def __init__(self, softmaxBeta, goalPolicy):
+        self.softmaxBeta = softmaxBeta
+        self.goalPolicy = goalPolicy
+
+    def __call__(self, playerGrid, targetGrid1, targetGrid2, priorList):
+        targets = list([targetGrid1, targetGrid2])
+        actionProbList = [list(self.goalPolicy(playerGrid, goal).values()) for goal in targets]
+        actionProbs = calBasePolicy(priorList, actionProbList)
+
+        actionKeys = self.goalPolicy(playerGrid, targetGrid1).keys()
+        actionDict = dict(actionKeys, actionProbs)
+
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = chooseSoftMaxAction(actionDict, self.softmaxBeta)
+
+        aimePlayerGrid = tuple(np.add(playerGrid, action))
+        return aimePlayerGrid, action
+
+
 if __name__ == "__main__":
     pg.init()
     screenWidth = 720
