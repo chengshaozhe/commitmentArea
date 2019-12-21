@@ -197,6 +197,7 @@ class ModelController():
         else:
 
             actionValue = list(policyForCurrentStateDict.values())
+            actionValue = [min(100,v) for v in actionValue]
             softmaxProbabilityList = calculateSoftmaxProbability(actionValue, self.softmaxBeta)
             action = list(policyForCurrentStateDict.keys())[
                 list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]

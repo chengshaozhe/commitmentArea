@@ -83,7 +83,7 @@ def main():
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    softmaxBetaList = [5,10]
+    softmaxBetaList = [1]
     for softmaxBeta in softmaxBetaList:
 
         for i in range(30):
