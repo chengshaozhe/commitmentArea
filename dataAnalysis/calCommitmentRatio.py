@@ -16,7 +16,7 @@ if __name__ == '__main__':
     stdList = []
     statData = []
     # participants = ['human', 'softmaxBeta0.1', 'softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5', 'softmaxBeta5']
-    participants = ['human','softmaxBeta0.5']
+    participants = ['human', 'softmaxBeta2.5', 'priorSoftmaxBeta2.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -43,7 +43,6 @@ if __name__ == '__main__':
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
         statData.append(statDF['firstIntentionConsistFinalGoalSpecail'])
-
 
     # print(ttest_ind(statData[0], statData[1]))
 

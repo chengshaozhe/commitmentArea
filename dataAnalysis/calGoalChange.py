@@ -14,7 +14,7 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'maxModelNoise0.1', 'maxModelNoNoise']
+    participants = ['human', 'max']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -27,7 +27,7 @@ if __name__ == '__main__':
         dfExpTrail["goalChange"] = dfExpTrail.apply(lambda x: calMidLineIntentionAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
 
         # dfExpTrail = dfExpTrail[dfExpTrail["goalChange"] == 0]
-        dfExpTrail.to_csv("gg.csv")
+        # dfExpTrail.to_csv("gg.csv")
 
         statDF = pd.DataFrame()
         statDF['goalChange'] = dfExpTrail.groupby('name')["goalChange"].mean()

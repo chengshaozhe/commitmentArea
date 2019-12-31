@@ -262,6 +262,22 @@ class ModelControllerWithGoal:
         return aimePlayerGrid, action
 
 
+class ModelControllerOnlineReward:
+    def __init__(self, softmaxBeta, goalPolicy):
+        self.softmaxBeta = softmaxBeta
+        self.goalPolicy = goalPolicy
+
+    def __call__(self, playerGrid, targetGrid1, targetGrid2, goalRewardList):
+        actionDict = runVI((targetGrid1, targetGrid2), goalRewardList)
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = chooseSoftMaxAction(actionDict, self.softmaxBeta)
+
+        aimePlayerGrid = tuple(np.add(playerGrid, action))
+        return aimePlayerGrid, action
+
+
 if __name__ == "__main__":
     pg.init()
     screenWidth = 720
