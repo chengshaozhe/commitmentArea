@@ -53,9 +53,13 @@ if __name__ == '__main__':
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 <<<<<<< HEAD
+<<<<<<< HEAD
     participants = ['human', 'softmaxBeta0.5', 'softmaxBeta2.5']
 =======
     participants = ['human', 'softmaxBeta2.5']
+=======
+    participants = ['human', 'softmaxBeta2.5', 'prior5SoftmaxBeta2.5']
+>>>>>>> d0db290291836a539a8121c6853aa01310295a03
 
 >>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
     for participant in participants:

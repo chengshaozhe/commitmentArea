@@ -15,11 +15,15 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
 <<<<<<< HEAD
+<<<<<<< HEAD
     participants = ['human','softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5','softmaxBeta3']
 
 =======
     participants = ['human', 'softMaxBeta2.5','max']
 >>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
+=======
+    participants = ['human', 'softMaxBeta2.5', 'max']
+>>>>>>> d0db290291836a539a8121c6853aa01310295a03
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)

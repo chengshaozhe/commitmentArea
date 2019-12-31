@@ -415,6 +415,7 @@ if __name__ == '__main__':
         # print (Q_dict)
 
         Q_dict_output = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+<<<<<<< HEAD
         # print (Q_dict_output)
 
         # normlizedQ_dict = {}
@@ -438,6 +439,31 @@ if __name__ == '__main__':
 #         plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
 #         plt.show()
 #         break
+=======
+        print (Q_dict_output)
+
+        normlizedQ_dict = {}
+        for wolf_state in S:
+            normlizedQ_dict[wolf_state] = {action: np.divide(Q_dict[wolf_state][action], np.sum(list(Q_dict[wolf_state].values()))) for action in A}
+
+# viz V
+        # def calMaxDiff(Qlist):
+        #     diff = sorted(Qlist)[-1] - sorted(Qlist)[-2]
+        #     return diff
+        # QValueDiff = {s: calMaxDiff(Q_dict[s].values()) for s in Q_dict.keys()}
+        # normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
+        # actionProbMax = {s: max(normlizedQ_dict[s].values()) for s in Q_dict.keys()}
+
+        # mapValue = 'QValueDiff'
+        # heatMapValue = eval(mapValue)
+        # y = dict_to_array(heatMapValue)
+        # y = y.reshape((gridSize, gridSize))
+        # df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
+        # sns.heatmap(df, annot=True, fmt='.3f')
+        # plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalReward))
+        # plt.show()
+        # break
+>>>>>>> d0db290291836a539a8121c6853aa01310295a03
 
 # viz Q
         # fig, ax = plt.subplots(1, 1, tight_layout=True)

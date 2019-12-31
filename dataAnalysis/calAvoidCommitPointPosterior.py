@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import numpy as np
 import pickle
-from scipy.stats import ttest_ind, entropy, mannwhitneyu, ranksums
+from scipy.stats import ttest_ind, entropy
 from scipy.interpolate import interp1d
-from dataAnalysis import calculateSE
+from sklearn.metrics import mutual_info_score as KL
+from dataAnalysis import calculateSE, calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmnetZone
 
 
 def calculateSoftmaxProbability(acionValues, beta):
@@ -70,72 +71,6 @@ def calInformationGain(baseProb, conditionProb):
     return entropy(baseProb) - entropy(conditionProb)
 
 
-# class CalculateActionInformation:
-#     def __init__(self, initPrior, goalPolicy, basePolicy):
-#         self.initPrior = initPrior
-#         self.goalPolicy = goalPolicy
-#         self.basePolicy = basePolicy
-
-#     def __call__(self, trajectory, aimAction, target1, target2):
-#         trajectory = list(map(tuple, trajectory))
-#         targets = list([target1, target2])
-#         expectedInfoList = []
-#         cumulatedInfoList = []
-#         priorList = self.initPrior
-#         for index, (playerGrid, action) in enumerate(zip(trajectory, aimAction)):
-#             likelihoodList = [self.goalPolicy(playerGrid, goal).get(action) for goal in targets]
-#             posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
-#             evidence = sum(posteriorUnnormalized)
-
-#             posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
-#             prior = posteriorList
-
-#             goalProbList = [list(self.goalPolicy(playerGrid, goal).values()) for goal in targets]
-#             baseProb = list(self.basePolicy(playerGrid, target1, target2).values())
-
-#             # expectedInfo = sum([goalPosterior * KL(goalProb, baseProb) for goalPosterior, goalProb in zip(posteriorList, goalProbList)])
-#             expectedInfo = sum([goalPosterior * calInformationGain(baseProb, goalProb) for goalPosterior, goalProb in zip(posteriorList, goalProbList)])
-#             expectedInfoList.append(expectedInfo)
-#             cumulatedInfo = sum(expectedInfoList)
-#             cumulatedInfoList.append(cumulatedInfo)
-
-#         return cumulatedInfoList
-
-
-class CalculateActionInformation:
-    def __init__(self, initPrior, goalPolicy, basePolicy):
-        self.initPrior = initPrior
-        self.goalPolicy = goalPolicy
-        self.basePolicy = basePolicy
-
-    def __call__(self, trajectory, aimAction, target1, target2):
-        trajectory = list(map(tuple, trajectory))
-        goalPosteriorList = []
-        priorGoal = initPrior[0]
-
-        goal = trajectory[-1]
-        targets = list([target1, target2])
-        noGoal = [target for target in targets if target != goal][0]
-        expectedInfoList = []
-        cumulatedInfoList = []
-        for playerGrid, action in zip(trajectory, aimAction):
-            likelihoodGoal = self.goalPolicy(playerGrid, goal).get(action)
-            likelihoodNogoal = self.goalPolicy(playerGrid, noGoal).get(action)
-            posteriorGoal = (priorGoal * likelihoodGoal) / ((priorGoal * likelihoodGoal) + (1 - priorGoal) * likelihoodNogoal)
-            priorGoal = posteriorGoal
-
-            goalProb = list(self.goalPolicy(playerGrid, goal).values())
-            baseProb = list(self.basePolicy(playerGrid, target1, target2).values())
-
-            # expectedInfo = posteriorGoal * KL(goalProb, baseProb)
-            expectedInfo = posteriorGoal * calInformationGain(baseProb, goalProb)
-            expectedInfoList.append(expectedInfo)
-            cumulatedInfo = sum(expectedInfoList)
-            cumulatedInfoList.append(cumulatedInfo)
-
-        return cumulatedInfoList
-
-
 def calPosterior(goalPosteriorList):
     x = np.divide(np.arange(len(goalPosteriorList) + 1), len(goalPosteriorList))
     goalPosteriorList.append(1)
@@ -177,6 +112,27 @@ class CalFirstIntentionStepRatio:
         return firstIntentionStepRatio
 
 
+def calMidPoints(trajectory, target1, target2):
+    playerGrid = trajectory[0]
+    zone = calculateAvoidCommitmnetZone(playerGrid, target1, target2)
+    midpoints = list([(target1[0], target2[1]), (target2[0], target1[1])])
+    midPoint = list(set(zone).intersection(set(midpoints)))
+    return midPoint[0]
+
+
+def isTrajHasMidPoints(trajectory, target1, target2):
+    trajectory = list(map(tuple, trajectory))
+    midPoint = calMidPoints(trajectory, target1, target2)
+    hasMidPoint = 1 if midPoint in trajectory else 0
+    return hasMidPoint
+
+
+def sliceTraj(trajectory, midPoint):
+    trajectory = list(map(tuple, trajectory))
+    index = trajectory.index(midPoint) + 1
+    return trajectory[: index]
+
+
 if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
@@ -189,53 +145,36 @@ if __name__ == '__main__':
     goalInfernce = GoalInfernce(initPrior, softmaxPolicy)
     calFirstIntentionStep = CalFirstIntentionStep(inferThreshold)
     calFirstIntentionStepRatio = CalFirstIntentionStepRatio(calFirstIntentionStep)
-    # calculateActionInformation = CalculateActionInformation(initPrior, softmaxPolicy, basePolicy)
-
-    # trajectory = [(1, 7), [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7], [8, 7], [8, 9], [9, 9], [10, 9], [8, 9], [9, 9], [10, 9], [11, 9], [12, 9], [12, 8], [12, 7]]
-    # aimAction = [(1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (1, 0), (0, -1), (0, -1)]
-    # target1, target2 = (6, 13), (12, 7)
-
-    # trajectory = [(9, 6), [9, 7], [9, 8], [9, 9], [9, 10], [9, 11], [8, 11], [7, 11], [6, 11], [5, 11], [6, 10], [6, 11], [6, 12], [6, 13]]
-    # aimAction = [(0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (0, 1), (0, 1), (0, 1)]
-    # target1, target2 = (6, 13), (4, 11)
-
-    # goalPosteriorList = goalInfernce(trajectory, aimAction, target1, target2)
-    # print(len(goalPosteriorList))
-    # firstIntentionStep = calFirstIntentionStep(goalPosteriorList)
-    # firstIntentionStepRatio = calFirstIntentionStepRatio(goalPosteriorList)
-    # goalPosteriorList.insert(0, initPrior[0])
-    # goalPosteriori = np.array(goalPosteriorList).T
-    # x = np.arange(len(goalPosteriorList))
-    # lables = ['goalA']
-    # for i in range(len(lables)):
-    #     plt.plot(x, goalPosteriori, label=lables[i])
-    # xlabels = np.arange(len(goalPosteriorList))
-    # plt.xticks(x, xlabels)
-    # plt.xlabel('step')
-    # plt.legend(loc='best')
-    # plt.show()
 
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    statDFList = []
-    participants = ['human', 'softmaxBeta2.5']
+    participants = ['human', 'softmaxBeta2.5', 'max']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
         nubOfSubj = len(df["name"].unique())
         print(participant, nubOfSubj)
 
-        df['goalPosteriorList'] = df.apply(lambda x: goalInfernce(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+        df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
 
-        # df['expectedInfoList'] = df.apply(lambda x: calculateActionInformation(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+        totalTrial = len(df)
+
+        df['hasMidPoint'] = df.apply(lambda x: isTrajHasMidPoints(eval(x['trajectory']), eval(x['target1']), eval(x['target2'])), axis=1)
+
+        df = df[(df['hasMidPoint'] != 0) & (df['areaType'] == 'expRect')]
+
+        df['midPoint'] = df.apply(lambda x: calMidPoints(eval(x['trajectory']), eval(x['target1']), eval(x['target2'])), axis=1)
+
+        df['midPointTraj'] = df.apply(lambda x: sliceTraj(eval(x['trajectory']), x['midPoint']), axis=1)
+
+        df['goalPosteriorList'] = df.apply(lambda x: goalInfernce(x['midPointTraj'], eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
         df['firstIntentionStep'] = df.apply(lambda x: calFirstIntentionStep(x['goalPosteriorList']), axis=1)
 
         df['firstIntentionStepRatio'] = df.apply(lambda x: calFirstIntentionStepRatio(x['goalPosteriorList']), axis=1)
 
         df['goalPosterior'] = df.apply(lambda x: calPosterior(x['goalPosteriorList']), axis=1)
-        # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
         dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         # dfExpTrail = df[(df['areaType'] == 'rect')]
@@ -257,7 +196,6 @@ if __name__ == '__main__':
         # dfExpTrail = df
 
         statDF = pd.DataFrame()
-
         # statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()
         # statDF['firstIntentionStepRatio'] = dfExpTrail.groupby('name')["firstIntentionStepRatio"].mean()
         # statDF['firstIntentionStepRatio'] = dfExpTrail.groupby('name')["firstIntentionStepRatio"].mean()
@@ -270,49 +208,22 @@ if __name__ == '__main__':
         # statsList.append([np.mean(statDF[stat]) for stat in stats])
         # stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
-        goalPosterior = np.array(dfExpTrail['goalPosterior'].tolist())
+        goalPosteriorList = dfExpTrail['goalPosterior'].tolist()
+        goalPosterior = np.array(goalPosteriorList)
         goalPosteriorMean = np.mean(goalPosterior, axis=0)
         goalPosteriorStd = np.divide(np.std(goalPosterior, axis=0, ddof=1), np.sqrt(len(goalPosterior) - 1))
+        # print(goalPosteriorMean)
         statsList.append(goalPosteriorMean)
         stdList.append(goalPosteriorStd)
-
-        def arrMean(df, colnames):
-            arr = np.array(df[colnames].tolist())
-            return np.mean(arr, axis=0)
-        grouped = pd.DataFrame(dfExpTrail.groupby('name').apply(arrMean, 'goalPosterior'))
-        statArr = np.array(grouped.iloc[:, 0].tolist()).T
-
-        statDFList.append(statArr)
-
-    # testDataSet = abs(np.array(statDFList[0]) - np.array(statDFList[1]))
-    # testData = testDataSet
-    # print(testData)
-    # print(ttest_ind(testData, np.zeros(len(testData))))
-
-    pvalus = np.array([ttest_ind(statDFList[0][i], statDFList[1][i])[1] for i in range(statDFList[0].shape[0])])
-    # pvalus = np.array([mannwhitneyu(statDFList[0][i], statDFList[1][i])[1] for i in range(statDFList[0].shape[0])])
-
-    sigArea = np.where(pvalus < 0.05)[0]
-    print(sigArea)
-
-    # print(mannwhitneyu(statDFList[0], statDFList[1]))
-    # print(ranksums(statDFList[0], statDFList[1]))
 
     lables = participants
     # lables = ['Human', 'Agent']
 
     xnew = np.linspace(0., 1., 30)
-    xnewSig = xnew[sigArea]
-    ySig = [stats[sigArea] for stats in statsList]
-
     lineWidth = 1
     for i in range(len(statsList)):
         plt.plot(xnew, statsList[i], label=lables[i], linewidth=lineWidth)
-    # plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
-
- # sig area line
-    for sigLine in [xnewSig[0], xnewSig[-1]]:
-        plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
+        # plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
 
     # xlabels = ['firstIntentionStepRatio']
     # labels = participants
@@ -324,7 +235,6 @@ if __name__ == '__main__':
     #     plt.bar(x + width * i, statsList[i], yerr=stdList[i], width=width, label=labels[i])
     # plt.xticks(x, xlabels)
     # plt.ylim((0, 1.1))
-
     fontSize = 10
     plt.legend(loc='best', fontsize=fontSize)
     plt.xlabel('Time', fontsize=fontSize, color='black')

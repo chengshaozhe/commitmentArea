@@ -270,6 +270,26 @@ class ModelControllerWithGoal:
         return aimePlayerGrid, action
 
 
+class ModelControllerOnlineReward:
+    def __init__(self, gridSize, softmaxBeta, runVI):
+        self.gridSize = gridSize
+        self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+        self.softmaxBeta = softmaxBeta
+        self.runVI = runVI
+
+    def __call__(self, playerGrid, targetGrid1, targetGrid2, goalRewardList):
+        QDict = self.runVI((targetGrid1, targetGrid2), goalRewardList)
+        actionDict = QDict[(playerGrid, (targetGrid1, targetGrid2))]
+
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = chooseSoftMaxAction(actionDict, self.softmaxBeta)
+
+        aimePlayerGrid = tuple(np.add(playerGrid, action))
+        return aimePlayerGrid, action
+
+
 if __name__ == "__main__":
     pg.init()
     screenWidth = 720

@@ -8,7 +8,7 @@ import numpy as np
 import pickle
 from scipy.stats import ttest_ind, entropy
 from scipy.interpolate import interp1d
-from sklearn.metrics import mutual_info_score as KL
+from sklearn.metrics import normalized_mutual_info_score as KL
 from dataAnalysis import calculateSE
 
 
@@ -110,9 +110,9 @@ class CalculateActionInformation:
             cumulatedInfo = sum(expectedInfoList)
             cumulatedInfoList.append(cumulatedInfo)
 
-        # cumulatedInfoList = [info / sum(cumulatedInfoList) for info in cumulatedInfoList]
+        cumulatedInfoList = [info / sum(cumulatedInfoList) for info in cumulatedInfoList]
         # cumulatedInfoList = [(info - np.mean(cumulatedInfoList)) / np.std(cumulatedInfoList) for info in cumulatedInfoList]
-        return cumulatedInfoList
+        return cumulatedInfoList[:-1]
 
 
 # class CalculateActionInformation:
@@ -232,7 +232,7 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta2.5', 'max']
+    participants = ['human', 'max']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
