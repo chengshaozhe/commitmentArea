@@ -13,8 +13,8 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise
-from src.simulationTrial import NormalTrial, SpecialTrial
+from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal
+from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
 
@@ -75,15 +75,21 @@ def main():
     midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-
+    # policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
 
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    softmaxBetaList = [1]
+    softmaxBetaList = [2.5]
+
+    goalPolicy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+
+    initPrior = [0.5, 0.5]
+    inferGoalPosterior = InferGoalPosterior(goalPolicy)
+    priorBeta = 5
+
     for softmaxBeta in softmaxBetaList:
 
         for i in range(30):
@@ -109,18 +115,21 @@ def main():
             blockNumber = int(numNormalTrials / numTrialsPerBlock)
             noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
-
     # deubg
-            # conditionList = [expCondition]*27
-            # noiseDesignValues = ['special']*27
+            # conditionList = [expCondition] * 27
+            # noiseDesignValues = ['special'] * 27
     # debug
-            modelController = ModelController(policy, gridSize, softmaxBeta)
-            controller = modelController
-            normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
-            specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+            # modelController = ModelController(policy, gridSize, softmaxBeta)
+            modelControllerWithGoal = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, priorBeta)
+
+            controller = modelControllerWithGoal
+            # normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
+            # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+            normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
+            specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
 
             experimentValues = co.OrderedDict()
-            experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i)
+            experimentValues["name"] = "priorSoftmaxBeta" + str(softmaxBeta) + '_' + str(i)
             writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
             writer = WriteDataFrameToCSV(writerPath)
             experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)

@@ -7,21 +7,30 @@ plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
 
-from dataAnalysis import calculateFirstIntentionConsistency, calculateFirstIntention, calculateSE
+from dataAnalysis import calculateSE
+
+
+def calculateTimeGap(timeList):
+    timeGap = [timeList[i + 1] - timeList[i] for i in range(len(timeList) - 1)]
+    return timeGap
+
+
+def calculateIsTimeMaxNextNoisePoint(timeList, noisePoint):
+    noisePointNextStep = [i + 1 for i in noisePoint]
+    timeGap = [timeList[i + 1] - timeList[i] for i in range(len(timeList) - 1)]
+    maxReactTimeStep = [i + 2 for i, x in enumerate(timeGap) if x == max(timeGap)]
+    if [i for i in maxReactTimeStep if i in noisePointNextStep] != []:
+        isTimeMaxNextNoisePoint = 1
+    else:
+        isTimeMaxNextNoisePoint = 0
+    return isTimeMaxNextNoisePoint
 
 
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-<<<<<<< HEAD
-    participants = ['human','softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5','softmaxBeta3']
-
-=======
-    statData = []
-    # participants = ['human', 'softmaxBeta0.1', 'softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5', 'softmaxBeta5']
-    participants = ['human','softmaxBeta0.5']
->>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
+    participants = ['human', 'softmaxBeta2.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -30,7 +39,7 @@ if __name__ == '__main__':
         nubOfSubj = len(df["name"].unique())
         print('participant', participant, nubOfSubj)
 
-        df["firstIntentionConsistFinalGoal"] = df.apply(lambda x: calculateFirstIntentionConsistency(eval(x['goal'])), axis=1)
+        df["timeGap"] = df.apply(lambda x: calculateTimeGap(eval(x['reactionTime'])), axis=1)
 
         dfNormailTrail = df[df['noiseNumber'] != 'special']
         dfSpecialTrail = df[df['noiseNumber'] == 'special']
@@ -47,10 +56,6 @@ if __name__ == '__main__':
         stats = statDF.columns
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
-        statData.append(statDF['firstIntentionConsistFinalGoalSpecail'])
-
-
-    # print(ttest_ind(statData[0], statData[1]))
 
     xlabels = ['normalTrial', 'specialTrial']
     lables = participants

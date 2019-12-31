@@ -14,8 +14,12 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
+<<<<<<< HEAD
     participants = ['human','softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5','softmaxBeta3']
 
+=======
+    participants = ['human', 'softMaxBeta2.5','max']
+>>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -32,14 +36,21 @@ if __name__ == '__main__':
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
 
 
+<<<<<<< HEAD
+=======
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
+>>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine') & (df['intentionedDisToTargetMin'] > 2)]
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
-        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
+        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
         # dfExpTrail = df[((df['distanceDiff'] == 0) & df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine')]

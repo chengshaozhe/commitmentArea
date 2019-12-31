@@ -345,8 +345,13 @@ if __name__ == '__main__':
     t = 0
     for sheep_states in sheep_states_all:
         t += 1
+<<<<<<< HEAD
         # sheep_states = ((6, 2), (6, 6))
         # sheep_states = ((7, 3), (3, 7))
+=======
+        sheep_states = ((6,2 ), (6, 6))
+        # sheep_states = ((6, 3), (3, 6))
+>>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
         # sheep_states = ((4, 2), (2, 4))
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))

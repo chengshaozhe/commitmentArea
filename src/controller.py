@@ -94,6 +94,7 @@ def isGridsNotALine(playerGrid, bean1Grid, bean2Grid):
     else:
         return True
 
+
 class SampleToZoneNoiseNoLine:
     def __init__(self, noiseActionSpace):
         self.noiseActionSpace = noiseActionSpace
@@ -197,12 +198,75 @@ class ModelController():
         else:
 
             actionValue = list(policyForCurrentStateDict.values())
-            actionValue = [min(100,v) for v in actionValue]
+            actionValue = [min(100, v) for v in actionValue]
             softmaxProbabilityList = calculateSoftmaxProbability(actionValue, self.softmaxBeta)
             action = list(policyForCurrentStateDict.keys())[
                 list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
         aimePlayerGrid = tuple(np.add(playerGrid, action))
         # pg.time.delay(500)
+        return aimePlayerGrid, action
+
+
+def chooseMaxAcion(actionDict):
+    actionMaxList = [action for action in actionDict.keys() if
+                     actionDict[action] == np.max(list(actionDict.values()))]
+    action = random.choice(actionMaxList)
+    return action
+
+
+def chooseSoftMaxAction(actionDict, softmaxBeta):
+    actionValue = list(actionDict.values())
+    softmaxProbabilityList = calculateSoftmaxProbability(actionValue, softmaxBeta)
+    action = list(actionDict.keys())[
+        list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
+    return action
+
+
+def calBasePolicy(posteriorList, actionProbList):
+    basePolicyList = [np.multiply(goalProb, actionProb) for goalProb, actionProb in zip(posteriorList, actionProbList)]
+    basePolicy = np.sum(basePolicyList, axis=0)
+    return basePolicy
+
+
+class InferGoalPosterior:
+    def __init__(self, goalPolicy):
+        self.goalPolicy = goalPolicy
+
+    def __call__(self, playerGrid, action, target1, target2, priorList):
+        targets = list([target1, target2])
+
+        likelihoodList = [self.goalPolicy[playerGrid, goal].get(action) for goal in targets]
+        posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
+        evidence = sum(posteriorUnnormalized)
+
+        posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
+        return posteriorList
+
+
+class ModelControllerWithGoal:
+    def __init__(self, gridSize, softmaxBeta, goalPolicy, priorBeta):
+        self.gridSize = gridSize
+        self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+        self.softmaxBeta = softmaxBeta
+        self.goalPolicy = goalPolicy
+        self.priorBeta = priorBeta
+
+    def __call__(self, playerGrid, targetGrid1, targetGrid2, priorList):
+        targets = list([targetGrid1, targetGrid2])
+        actionProbList = [list(self.goalPolicy[playerGrid, goal].values()) for goal in targets]
+
+        # priorList = calculateSoftmaxProbability(priorList, self.priorBeta)
+        actionProbs = calBasePolicy(priorList, actionProbList)
+
+        actionKeys = self.goalPolicy[playerGrid, targetGrid1].keys()
+        actionDict = dict(zip(actionKeys, actionProbs))
+
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = chooseSoftMaxAction(actionDict, self.softmaxBeta)
+
+        aimePlayerGrid = tuple(np.add(playerGrid, action))
         return aimePlayerGrid, action
 
 

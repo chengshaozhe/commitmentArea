@@ -52,7 +52,12 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
+<<<<<<< HEAD
     participants = ['human', 'softmaxBeta0.5', 'softmaxBeta2.5']
+=======
+    participants = ['human', 'softmaxBeta2.5']
+
+>>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
