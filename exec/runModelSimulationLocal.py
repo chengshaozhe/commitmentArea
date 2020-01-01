@@ -90,10 +90,12 @@ def main():
     initPrior = [0.5, 0.5]
     inferGoalPosterior = InferGoalPosterior(goalPolicy)
     priorBeta = 5
+    softmaxBeta = 2.5
+    rewardVarianceList = [5, 10, 30, 50]
+    # for softmaxBeta in softmaxBetaList:
+    for rewardVariance in rewardVarianceList:
 
-    for softmaxBeta in softmaxBetaList:
-
-        for i in range(33):
+        for i in range(10):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -130,11 +132,11 @@ def main():
             # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
             # normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
             # specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
-            normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary)
-            specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+            normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
+            specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
 
             experimentValues = co.OrderedDict()
-            experimentValues["name"] = "rewardUncertain" + str(softmaxBeta) + '_' + str(i)
+            experimentValues["name"] = "rewardVariance" + str(rewardVariance) + '_' + str(i)
             writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
             writer = WriteDataFrameToCSV(writerPath)
             experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)

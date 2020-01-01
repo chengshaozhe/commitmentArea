@@ -266,19 +266,19 @@ class SpecialTrialWithGoal():
 
 
 def rewardNoise(goalRewardList, variance):
-    noiseRewardList = [np.random.normal(mu, variance) for mu in goalRewardList]
+    noiseRewardList = [round(np.random.normal(mu, variance)) for mu in goalRewardList]
     return noiseRewardList
 
 
 class NormalTrialRewardOnline():
-    def __init__(self, controller, drawNewState, drawText, normalNoise, checkBoundary):
+    def __init__(self, controller, drawNewState, drawText, normalNoise, checkBoundary, variance):
         self.controller = controller
         self.drawNewState = drawNewState
         self.drawText = drawText
         self.normalNoise = normalNoise
         self.checkBoundary = checkBoundary
         self.goalRewardList = [100, 100]
-        self.variance = 5
+        self.variance = variance
 
     def __call__(self, bean1Grid, bean2Grid, playerGrid, designValues):
         initialPlayerGrid = playerGrid
@@ -295,9 +295,11 @@ class NormalTrialRewardOnline():
 
         realPlayerGrid = initialPlayerGrid
         pause = True
+        goalRewardList = self.goalRewardList
         while pause:
-            aimPlayerGrid, aimAction = self.controller(realPlayerGrid, bean1Grid, bean2Grid, self.goalRewardList)
-            # self.goalRewardList = rewardNoise(self.goalRewardList, self.variance)
+            aimPlayerGrid, aimAction = self.controller(realPlayerGrid, bean1Grid, bean2Grid, goalRewardList)
+            goalRewardList = rewardNoise(self.goalRewardList, self.variance)
+
             goal = inferGoal(trajectory[-1], aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)
             stepCount = stepCount + 1
@@ -317,13 +319,14 @@ class NormalTrialRewardOnline():
 
 
 class SpecialTrialRewardOnline():
-    def __init__(self, controller, drawNewState, drawText, backToZoneNoise, checkBoundary):
+    def __init__(self, controller, drawNewState, drawText, backToZoneNoise, checkBoundary, variance):
         self.controller = controller
         self.drawNewState = drawNewState
         self.drawText = drawText
         self.backToZoneNoise = backToZoneNoise
         self.checkBoundary = checkBoundary
         self.goalRewardList = [100, 100]
+        self.variance = variance
 
     def __call__(self, bean1Grid, bean2Grid, playerGrid):
         initialPlayerGrid = playerGrid
