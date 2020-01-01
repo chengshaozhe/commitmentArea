@@ -297,7 +297,7 @@ class NormalTrialRewardOnline():
         pause = True
         while pause:
             aimPlayerGrid, aimAction = self.controller(realPlayerGrid, bean1Grid, bean2Grid, self.goalRewardList)
-            # self.goalRewardList = rewardNoise(self.goalRewardList, self.variance)
+            self.goalRewardList = rewardNoise(self.goalRewardList, self.variance)
             goal = inferGoal(trajectory[-1], aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)
             stepCount = stepCount + 1

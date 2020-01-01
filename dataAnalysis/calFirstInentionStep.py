@@ -15,12 +15,14 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta2.5', 'max']
+    participants = ['human', 'softmaxBeta2.5', 'rewardUncertain2.5']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
 
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(eval(x['goal'])), axis=1)
+        df['totalStep'] = df.apply(lambda x: len(eval(x['trajectory'])), axis=1)
+
         # df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())
         print(participant, nubOfSubj)
@@ -39,15 +41,17 @@ if __name__ == '__main__':
         # dfExpTrail = df
 
         statDF = pd.DataFrame()
-        statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()
-        print('firstIntentionStep', np.mean(statDF['firstIntentionStep']))
+        # statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()
+        statDF['totalStep'] = dfExpTrail.groupby('name')["totalStep"].mean()
+
+        # print('firstIntentionStep', np.mean(statDF['firstIntentionStep']))
         print('')
 
         stats = statDF.columns
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
-    xlabels = ['firstIntentionStep']
+    xlabels = ['totalStep']
     labels = participants
     x = np.arange(len(xlabels))
     totalWidth, n = 0.1, len(participants)
@@ -56,7 +60,7 @@ if __name__ == '__main__':
     for i in range(len(statsList)):
         plt.bar(x + width * i, statsList[i], yerr=stdList[i], width=width, label=labels[i])
     plt.xticks(x, xlabels)
-    plt.ylim((0, 10))
+    # plt.ylim((0, 10))
     plt.legend(loc='best')
 
     plt.title('firstIntentionStep')
