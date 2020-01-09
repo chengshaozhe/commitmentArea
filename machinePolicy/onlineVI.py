@@ -172,11 +172,12 @@ def Q_from_V(s, a, T=None, R=None, V=None, gamma=None):
 
 
 def runVI(sheep_states, goalRewardList):
-    gridSize = 15
+    gridSize = 10
     env = GridWorld("test", nx=gridSize, ny=gridSize)
 
     terminalValue = {s: goalReward for s, goalReward in zip(sheep_states, goalRewardList)}
 
+    env.add_terminals(list(obstacles_states))
     env.add_feature_map("goal", terminalValue, default=0)
     env.add_terminals(list(sheep_states))
 
@@ -210,14 +211,14 @@ def runVI(sheep_states, goalRewardList):
     Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
     Q_dict = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
 
-    # mapValue = 'V'
-    # heatMapValue = eval(mapValue)
-    # y = dict_to_array(heatMapValue)
-    # y = y.reshape((gridSize, gridSize))
-    # df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
-    # sns.heatmap(df, annot=True, fmt='.3f')
-    # plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalRewardList))
-    # plt.show()
+    mapValue = 'V'
+    heatMapValue = eval(mapValue)
+    y = dict_to_array(heatMapValue)
+    y = y.reshape((gridSize, gridSize))
+    df = pd.DataFrame(y, columns=[x for x in range(gridSize)])
+    sns.heatmap(df, annot=True, fmt='.3f')
+    plt.title('{} for goal at {} noise={} goalReward={}'.format(mapValue, sheep_states, noise, goalRewardList))
+    plt.show()
 
     return Q_dict
 

@@ -219,7 +219,7 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     statDFList = []
-    participants = ['human', 'softmaxBeta2.5']
+    participants = ['human', 'softmaxBeta1']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)

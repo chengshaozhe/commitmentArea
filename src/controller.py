@@ -27,8 +27,6 @@ def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
 def calculateSoftmaxProbability(acionValues, beta):
     newProbabilityList = list(np.divide(np.exp(np.multiply(beta, acionValues)), np.sum(np.exp(np.multiply(beta, acionValues)))))
 
-    return newProbabilityList
-
 
 class NormalNoise():
     def __init__(self, actionSpace, gridSize):
@@ -198,7 +196,6 @@ class ModelController():
         else:
 
             actionValue = list(policyForCurrentStateDict.values())
-            actionValue = [min(100, v) for v in actionValue]
             softmaxProbabilityList = calculateSoftmaxProbability(actionValue, self.softmaxBeta)
             action = list(policyForCurrentStateDict.keys())[
                 list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
@@ -235,7 +232,7 @@ class InferGoalPosterior:
     def __call__(self, playerGrid, action, target1, target2, priorList):
         targets = list([target1, target2])
 
-        likelihoodList = [self.goalPolicy[playerGrid, goal].get(action) for goal in targets]
+        likelihoodList = [self.goalPolicy(playerGrid, goal).get(action) for goal in targets]
         posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
         evidence = sum(posteriorUnnormalized)
 
@@ -244,22 +241,17 @@ class InferGoalPosterior:
 
 
 class ModelControllerWithGoal:
-    def __init__(self, gridSize, softmaxBeta, goalPolicy, priorBeta):
-        self.gridSize = gridSize
-        self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+    def __init__(self, softmaxBeta, goalPolicy):
         self.softmaxBeta = softmaxBeta
         self.goalPolicy = goalPolicy
-        self.priorBeta = priorBeta
 
     def __call__(self, playerGrid, targetGrid1, targetGrid2, priorList):
         targets = list([targetGrid1, targetGrid2])
-        actionProbList = [list(self.goalPolicy[playerGrid, goal].values()) for goal in targets]
-
-        # priorList = calculateSoftmaxProbability(priorList, self.priorBeta)
+        actionProbList = [list(self.goalPolicy(playerGrid, goal).values()) for goal in targets]
         actionProbs = calBasePolicy(priorList, actionProbList)
 
-        actionKeys = self.goalPolicy[playerGrid, targetGrid1].keys()
-        actionDict = dict(zip(actionKeys, actionProbs))
+        actionKeys = self.goalPolicy(playerGrid, targetGrid1).keys()
+        actionDict = dict(actionKeys, actionProbs)
 
         if self.softmaxBeta < 0:
             action = chooseMaxAcion(actionDict)
@@ -271,16 +263,12 @@ class ModelControllerWithGoal:
 
 
 class ModelControllerOnlineReward:
-    def __init__(self, gridSize, softmaxBeta, runVI):
-        self.gridSize = gridSize
-        self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+    def __init__(self, softmaxBeta, goalPolicy):
         self.softmaxBeta = softmaxBeta
-        self.runVI = runVI
+        self.goalPolicy = goalPolicy
 
     def __call__(self, playerGrid, targetGrid1, targetGrid2, goalRewardList):
-        QDict = self.runVI((targetGrid1, targetGrid2), goalRewardList)
-        actionDict = QDict[(playerGrid, (targetGrid1, targetGrid2))]
-
+        actionDict = runVI((targetGrid1, targetGrid2), goalRewardList)
         if self.softmaxBeta < 0:
             action = chooseMaxAcion(actionDict)
         else:

@@ -14,18 +14,11 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-<<<<<<< HEAD
-    participants = ['human','softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5','softmaxBeta3']
 
-=======
     statData = []
     # participants = ['human', 'softmaxBeta0.1', 'softmaxBeta0.5', 'softmaxBeta1', 'softmaxBeta2.5', 'softmaxBeta5']
-<<<<<<< HEAD
-    participants = ['human','softmaxBeta0.5']
->>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
-=======
-    participants = ['human', 'softmaxBeta2.5', 'priorSoftmaxBeta2.5']
->>>>>>> d0db290291836a539a8121c6853aa01310295a03
+
+    participants = ['human', 'softmaxBeta0.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -53,7 +46,7 @@ if __name__ == '__main__':
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
         statData.append(statDF['firstIntentionConsistFinalGoalSpecail'])
 
-    # print(ttest_ind(statData[0], statData[1]))
+    print(ttest_ind(statData[0], statData[1]))
 
     xlabels = ['normalTrial', 'specialTrial']
     lables = participants

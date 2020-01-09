@@ -150,7 +150,7 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta2.5']
+    participants = ['human', 'softmaxBeta2.5','priorSoftmaxBeta2.5']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
