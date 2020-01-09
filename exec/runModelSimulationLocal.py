@@ -91,11 +91,11 @@ def main():
     inferGoalPosterior = InferGoalPosterior(goalPolicy)
     priorBeta = 5
     softmaxBeta = 2.5
-    rewardVarianceList = [5, 10, 30, 50]
+    rewardVarianceList = [50]
     # for softmaxBeta in softmaxBetaList:
     for rewardVariance in rewardVarianceList:
 
-        for i in range(10):
+        for i in range(7, 10):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)

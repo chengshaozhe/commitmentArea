@@ -266,7 +266,7 @@ class SpecialTrialWithGoal():
 
 
 def rewardNoise(goalRewardList, variance):
-    noiseRewardList = [round(np.random.normal(mu, variance)) for mu in goalRewardList]
+    noiseRewardList = [min(300, round(np.random.normal(mu, variance))) for mu in goalRewardList]
     return noiseRewardList
 
 
