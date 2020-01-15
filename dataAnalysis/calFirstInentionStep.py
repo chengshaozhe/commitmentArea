@@ -15,7 +15,8 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta0.5', 'rewardVariance5','rewardVariance10', 'rewardVariance30' ,'rewardVariance50']
+    # participants = ['human', 'softmaxBeta0.5', 'rewardVariance5','rewardVariance10', 'rewardVariance30' ,'rewardVariance50']
+    participants = ['human','commitBeta0.1', 'commitBeta0.5', 'commitBeta1']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)

@@ -181,7 +181,7 @@ if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
     # Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-    softmaxBeta = 1
+    softmaxBeta = 2.5
     softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     # basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
     initPrior = [0.5, 0.5]
@@ -219,7 +219,7 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     statDFList = []
-    participants = ['human', 'softmaxBeta1', 'rewardVariance5']
+    participants = ['human', 'softmaxBeta2.5', 'ttcommitBeta0.2','ttcommitBeta0.5','ttcommitBeta1','ttcommitBeta2','ttcommitBeta5']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
