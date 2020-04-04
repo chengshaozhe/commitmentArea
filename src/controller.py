@@ -25,7 +25,13 @@ def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
 
 
 def calculateSoftmaxProbability(acionValues, beta):
+<<<<<<< HEAD
     newProbabilityList = list(np.divide(np.exp(np.multiply(beta, acionValues)), np.sum(np.exp(np.multiply(beta, acionValues)))))
+=======
+    expont = [min(700, i) for i in np.multiply(beta, acionValues)]
+    newProbabilityList = list(np.divide(np.exp(expont), np.sum(np.exp(expont))))
+
+>>>>>>> 2bf40b0aa62a343a2fd9e7a88e2ab12018b65606
     return newProbabilityList
 
 
@@ -240,33 +246,80 @@ def calBasePolicy(posteriorList, actionProbList):
 
 
 class InferGoalPosterior:
-    def __init__(self, goalPolicy):
+    def __init__(self, goalPolicy, commitBeta):
         self.goalPolicy = goalPolicy
+        self.commitBeta = commitBeta
 
     def __call__(self, playerGrid, action, target1, target2, priorList):
         targets = list([target1, target2])
 
         likelihoodList = [self.goalPolicy(playerGrid, goal).get(action) for goal in targets]
         posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
-        evidence = sum(posteriorUnnormalized)
 
+        evidence = sum(posteriorUnnormalized)
         posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
+
+        diff = abs(posteriorList[0] - posteriorList[1])
+        if diff < self.commitBeta / 10:
+            posteriorUnnormalized = calculateSoftmaxProbability(posteriorUnnormalized, 1 / self.commitBeta)
+        else:
+            posteriorUnnormalized = calculateSoftmaxProbability(posteriorUnnormalized, self.commitBeta)
+        evidence = sum(posteriorUnnormalized)
+        posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
+
         return posteriorList
 
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(- x))
+
+
+def sigmoidScale(x, commitBeta):
+    return 1 / (1 + np.exp(- 100 * commitBeta * (x - commitBeta)))
+
+
+def normalizeProb(unnormProb):
+    prob = [p / sum(unnormProb) for p in unnormProb]
+    return prob
+
+
 class ModelControllerWithGoal:
-    def __init__(self, gridSize, softmaxBeta, goalPolicy):
+    def __init__(self, gridSize, softmaxBeta, policy, goalPolicy, commitBeta):
         self.gridSize = gridSize
         self.softmaxBeta = softmaxBeta
+        self.policy = policy
         self.goalPolicy = goalPolicy
+        self.commitBeta = commitBeta
 
     def __call__(self, playerGrid, targetGrid1, targetGrid2, priorList):
         targets = list([targetGrid1, targetGrid2])
-        actionProbList = [list(self.goalPolicy(playerGrid, goal).values()) for goal in targets]
+        actionProbList = [list(self.goalPolicy[playerGrid, goal].values()) for goal in targets]
+        actionKeys = self.goalPolicy[playerGrid, targetGrid1].keys()
         actionProbs = calBasePolicy(priorList, actionProbList)
-
-        actionKeys = self.goalPolicy(playerGrid, targetGrid1).keys()
         actionDict = dict(zip(actionKeys, actionProbs))
+
+        # softPriorList = calculateSoftmaxProbability(priorList, self.commitBeta)
+        # softPriorList = priorList
+
+        # if max(softPriorList) > sigmoid(self.commitBeta):
+        #     softPriorList = calculateSoftmaxProbability(priorList, self.commitBeta * 100)
+        #     actionProbs = calBasePolicy(softPriorList, actionProbList)
+        #     # goal = targets[np.argmax(priorList)]
+        #     # actionProbs = self.goalPolicy[playerGrid, goal].values()
+        #     actionDict = dict(zip(actionKeys, actionProbs))
+        # else:
+        #     priorList = calculateSoftmaxProbability(priorList, 100 / self.commitBeta)
+        #     actionProbs = calBasePolicy(priorList, actionProbList)
+        #     actionDict = dict(zip(actionKeys, actionProbs))
+        #     # actionDict = self.policy[(playerGrid, tuple(sorted(targets)))]
+
+        # diff = priorList[0] - priorList[1]
+        # diffScale = sigmoidScale(abs(diff), self.commitBeta)
+        # scaleP = (1 + diffScale) / 2
+        # if diff < 0:
+        #     priorListScale = list(sorted([scaleP, 1 - scaleP]))
+        # else:
+        #     priorListScale = list(sorted([scaleP, 1 - scaleP], reverse=True))
 
         if self.softmaxBeta < 0:
             action = chooseMaxAcion(actionDict)

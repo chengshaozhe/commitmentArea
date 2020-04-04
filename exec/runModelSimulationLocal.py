@@ -77,6 +77,7 @@ def main():
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
     # policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    policy = None
 
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
@@ -90,14 +91,14 @@ def main():
     goalPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     inferGoalPosterior = InferGoalPosterior(goalPolicy)
     priorBeta = 5
-    softmaxBeta = 2.5
+
+    commitBetaList = [1, 3, 5, 7]
+
     rewardVarianceList = [50]
-
-    # softmaxBetaList = [2.5]
+    softmaxBetaList = [2.5]
     # for softmaxBeta in softmaxBetaList:
-    for rewardVariance in rewardVarianceList:
-
-        for i in range(2):
+    for commitBeta in commitBetaList:
+        for i in range(10):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -121,25 +122,32 @@ def main():
             noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
     # deubg
-            # conditionList = [expCondition] * 27
+            conditionList = [expCondition] * 27
             # noiseDesignValues = ['special'] * 27
     # debug
             # modelController = ModelController(policy, gridSize, softmaxBeta)
-            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy)
+
+            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, policy, goalPolicy, commitBeta)
 
             # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
             controller = modelController
 
             # normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
             # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+
+            inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
+
             normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
             specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
             # normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
             # specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
 
             experimentValues = co.OrderedDict()
-            experimentValues["name"] = "rewardVariance" + str(rewardVariance) + '_' + str(i)
-            writerPath = os.path.join(resultsPath, experimentValues["name"] + '.csv')
+            experimentValues["name"] = "commitBeta" + str(commitBeta) + '_' + str(i)
+            resultsDirPath = os.path.join(resultsPath, "commitBeta" + str(commitBeta))
+            if not os.path.exists(resultsDirPath):
+                os.makedirs(resultsDirPath)
+            writerPath = os.path.join(resultsDirPath, experimentValues["name"] + '.csv')
             writer = WriteDataFrameToCSV(writerPath)
             experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
             experiment(noiseDesignValues, conditionList)

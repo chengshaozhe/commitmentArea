@@ -150,7 +150,7 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta2.5']
+    participants = ['human', 'softmaxBeta2.5', 'commitBeta1', 'commitBeta3', 'commitBeta5', 'commitBeta7']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     for i in range(len(statsList)):
         plt.bar(x + width * i, statsList[i], yerr=stdList[i], width=width, label=labels[i])
     plt.xticks(x, xlabels)
-    plt.ylim((0, 0.5))
+    plt.ylim((0, 0.8))
     plt.legend(loc='best')
 
     plt.show()
