@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward
+from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxPolicy
 from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -83,19 +83,21 @@ def main():
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    softmaxBetaList = [2.5]
-
-    goalPolicy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
 
     initPrior = [0.5, 0.5]
+    softmaxBeta = 2.5
+    goalPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     inferGoalPosterior = InferGoalPosterior(goalPolicy)
     priorBeta = 5
     softmaxBeta = 2.5
-    rewardVarianceList = [5, 10, 30, 50]
+    rewardVarianceList = [50]
+
+    # softmaxBetaList = [2.5]
     # for softmaxBeta in softmaxBetaList:
     for rewardVariance in rewardVarianceList:
 
-        for i in range(10):
+        for i in range(2):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -123,17 +125,17 @@ def main():
             # noiseDesignValues = ['special'] * 27
     # debug
             # modelController = ModelController(policy, gridSize, softmaxBeta)
-            # modelControllerWithGoal = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, priorBeta)
+            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy)
 
-            modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
+            # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
             controller = modelController
 
             # normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
             # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
-            # normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
-            # specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
-            normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
-            specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
+            normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
+            specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
+            # normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
+            # specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
 
             experimentValues = co.OrderedDict()
             experimentValues["name"] = "rewardVariance" + str(rewardVariance) + '_' + str(i)

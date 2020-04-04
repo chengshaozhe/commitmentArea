@@ -114,7 +114,7 @@ class CalFirstIntentionStepRatio:
 
 def calMidPoints(trajectory, target1, target2):
     playerGrid = trajectory[0]
-    zone = calculateAvoidCommitmnetZone(playerGrid, target1, target2)
+    zone = calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2)
     midpoints = list([(target1[0], target2[1]), (target2[0], target1[1])])
     midPoint = list(set(zone).intersection(set(midpoints)))
     return midPoint[0]
@@ -150,15 +150,16 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta2.5','priorSoftmaxBeta2.5']
+    participants = ['human', 'softmaxBeta2.5']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
         nubOfSubj = len(df["name"].unique())
         print(participant, nubOfSubj)
 
-        df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
 
+        df = df[(df['areaType'] == 'rect')]
         # print(len(df))
         df['hasMidPoint'] = df.apply(lambda x: isTrajHasMidPoints(eval(x['trajectory']), eval(x['target1']), eval(x['target2'])), axis=1)
 

@@ -26,6 +26,20 @@ def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
 
 def calculateSoftmaxProbability(acionValues, beta):
     newProbabilityList = list(np.divide(np.exp(np.multiply(beta, acionValues)), np.sum(np.exp(np.multiply(beta, acionValues)))))
+    return newProbabilityList
+
+
+class SoftmaxPolicy:
+    def __init__(self, Q_dict, softmaxBeta):
+        self.Q_dict = Q_dict
+        self.softmaxBeta = softmaxBeta
+
+    def __call__(self, playerGrid, target1):
+        actionDict = self.Q_dict[(playerGrid, target1)]
+        actionValues = list(actionDict.values())
+        softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
+        softMaxActionDict = dict(zip(actionDict.keys(), softmaxProbabilityList))
+        return softMaxActionDict
 
 
 class NormalNoise():
@@ -241,7 +255,8 @@ class InferGoalPosterior:
 
 
 class ModelControllerWithGoal:
-    def __init__(self, softmaxBeta, goalPolicy):
+    def __init__(self, gridSize, softmaxBeta, goalPolicy):
+        self.gridSize = gridSize
         self.softmaxBeta = softmaxBeta
         self.goalPolicy = goalPolicy
 
@@ -251,7 +266,7 @@ class ModelControllerWithGoal:
         actionProbs = calBasePolicy(priorList, actionProbList)
 
         actionKeys = self.goalPolicy(playerGrid, targetGrid1).keys()
-        actionDict = dict(actionKeys, actionProbs)
+        actionDict = dict(zip(actionKeys, actionProbs))
 
         if self.softmaxBeta < 0:
             action = chooseMaxAcion(actionDict)
@@ -278,44 +293,16 @@ class ModelControllerOnlineReward:
         return aimePlayerGrid, action
 
 
-if __name__ == "__main__":
-    pg.init()
-    screenWidth = 720
-    screenHeight = 720
-    screen = pg.display.set_mode((screenWidth, screenHeight))
-    gridSize = 20
-    leaveEdgeSpace = 2
-    lineWidth = 2
-    backgroundColor = [188, 188, 0]
-    lineColor = [255, 255, 255]
-    targetColor = [255, 50, 50]
-    playerColor = [50, 50, 255]
-    targetRadius = 10
-    playerRadius = 10
-    targetGridA = [5, 5]
-    targetGridB = [15, 5]
-    playerGrid = [10, 15]
-    currentScore = 5
-    textColorTuple = (255, 50, 50)
-    stopwatchEvent = pg.USEREVENT + 1
-    stopwatchUnit = 10
-    pg.time.set_timer(stopwatchEvent, stopwatchUnit)
-    finishTime = 90000
-    currentStopwatch = 32000
+class ModelControllerOnline:
+    def __init__(self, softmaxBeta):
+        self.softmaxBeta = softmaxBeta
 
-    drawBackground = Visualization.DrawBackground(screen, gridSize, leaveEdgeSpace, backgroundColor, lineColor,
-                                                  lineWidth, textColorTuple)
-    drawNewState = Visualization.DrawNewState(screen, drawBackground, targetColor, playerColor, targetRadius,
-                                              playerRadius)
+    def __call__(self, playerGrid, targetGrid1, targetGrid2, obstacles):
+        actionDict = runVI((targetGrid1, targetGrid2, obstacles))
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = chooseSoftMaxAction(actionDict, self.softmaxBeta)
 
-    getHumanAction = HumanController(gridSize, stopwatchEvent, stopwatchUnit, drawNewState, finishTime)
-    import pickle
-
-    policy = pickle.load(open("SingleWolfTwoSheepsGrid15.pkl", "rb"))
-    getModelAction = ModelController(policy, gridSize, stopwatchEvent, stopwatchUnit, drawNewState, finishTime)
-
-    # [playerNextPosition,action,newStopwatch]=getHumanAction(targetGridA, targetGridB, playerGrid, currentScore, currentStopwatch)
-    [playerNextPosition, action, newStopwatch] = getModelAction(targetGridA, targetGridB, playerGrid, currentScore, currentStopwatch)
-    print(playerNextPosition, action, newStopwatch)
-
-    pg.quit()
+        aimePlayerGrid = tuple(np.add(playerGrid, action))
+        return aimePlayerGrid, action
