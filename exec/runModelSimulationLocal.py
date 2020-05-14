@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward
+from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward,SoftmaxPolicy
 from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -84,15 +84,17 @@ def main():
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    goalPolicy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
 
     initPrior = [0.5, 0.5]
 
-    commitBetaList = [1, 3, 5, 7]
+    commitBetaList = [2, 4, 6, 8]
     softmaxBeta = 2.5
 
     rewardVarianceList = [50]
     softmaxBetaList = [2.5]
+
+    goalPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     # for softmaxBeta in softmaxBetaList:
     for commitBeta in commitBetaList:
         for i in range(10):

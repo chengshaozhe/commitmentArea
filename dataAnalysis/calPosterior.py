@@ -219,7 +219,7 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     statDFList = []
-    participants = ['human', 'softmaxBeta2.5', 'ttcommitBeta0.2','ttcommitBeta0.5','ttcommitBeta1','ttcommitBeta2','ttcommitBeta5']
+    participants = ['human', 'softmaxBeta2.5', 'commitBeta1','commitBeta3','commitBeta5','commitBeta7']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -311,8 +311,8 @@ if __name__ == '__main__':
     # plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
 
  # sig area line
-    for sigLine in [xnewSig[0], xnewSig[-1]]:
-        plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
+    # for sigLine in [xnewSig[0], xnewSig[-1]]:
+    #     plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
 
     # xlabels = ['firstIntentionStepRatio']
     # labels = participants
