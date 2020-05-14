@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward,SoftmaxPolicy
+from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxPolicy
 from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -88,8 +88,11 @@ def main():
 
     initPrior = [0.5, 0.5]
 
-    commitBetaList = [2, 4, 6, 8]
     softmaxBeta = 2.5
+    goalPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
+    priorBeta = 5
+
+    commitBetaList = np.arange(1, 10, 1)
 
     rewardVarianceList = [50]
     softmaxBetaList = [2.5]
@@ -125,17 +128,18 @@ def main():
             # noiseDesignValues = ['special'] * 27
     # debug
             # modelController = ModelController(policy, gridSize, softmaxBeta)
-            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, policy, goalPolicy, commitBeta)
+            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
 
             # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
             controller = modelController
 
             # normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
             # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
-            inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
 
+            inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
             normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
             specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
+
             # normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
             # specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
 
