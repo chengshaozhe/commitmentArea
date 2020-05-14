@@ -89,10 +89,9 @@ def main():
     initPrior = [0.5, 0.5]
     softmaxBeta = 2.5
     goalPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
-    inferGoalPosterior = InferGoalPosterior(goalPolicy)
     priorBeta = 5
 
-    commitBetaList = [1, 3, 5, 7]
+    commitBetaList = np.arange(1, 10, 1)
 
     rewardVarianceList = [50]
     softmaxBetaList = [2.5]
@@ -126,8 +125,7 @@ def main():
             # noiseDesignValues = ['special'] * 27
     # debug
             # modelController = ModelController(policy, gridSize, softmaxBeta)
-
-            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, policy, goalPolicy, commitBeta)
+            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
 
             # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
             controller = modelController
@@ -136,9 +134,9 @@ def main():
             # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
             inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
-
             normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
             specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
+
             # normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
             # specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
 

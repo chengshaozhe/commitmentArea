@@ -227,7 +227,12 @@ if __name__ == '__main__':
     stdList = []
     statDFList = []
 
-    participants = ['human', 'softmaxBeta2.5', 'ttcommitBeta0.2', 'ttcommitBeta0.5', 'ttcommitBeta1', 'ttcommitBeta2', 'ttcommitBeta5']
+    # participants = ['human', 'softmaxBeta2.5']
+    commitBetaList = np.arange(1, 10, 1)
+    commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
+
+    participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
+
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -245,11 +250,12 @@ if __name__ == '__main__':
         df['goalPosterior'] = df.apply(lambda x: calPosterior(x['goalPosteriorList']), axis=1)
         # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
-        dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         # dfExpTrail = df[(df['areaType'] == 'rect')]
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
 
+        dfExpTrail = df
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
@@ -307,7 +313,7 @@ if __name__ == '__main__':
     # print(ranksums(statDFList[0], statDFList[1]))
 
     lables = participants
-    # lables = ['Human', 'Agent']
+    # lables = ['Human', 'RL Agent']
 
     xnew = np.linspace(0., 1., 30)
     xnewSig = xnew[sigArea]
@@ -333,7 +339,7 @@ if __name__ == '__main__':
     # plt.xticks(x, xlabels)
     # plt.ylim((0, 1.1))
 
-    fontSize = 10
+    fontSize = 12
     plt.legend(loc='best', fontsize=fontSize)
     plt.xlabel('Time', fontsize=fontSize, color='black')
     plt.ylabel('Probability of Intention', fontsize=fontSize, color='black')
