@@ -1,12 +1,17 @@
 import numpy as np
 
 
+# def sigmoidScale(x, commitBeta):
+#     aNew = (1 / (1 + 1 * np.exp(- 75 * commitBeta * (x - (commitBeta + 1) / 2))) + 1) / 2
+#     return aNew
+
+
 def sigmoidScale(x, commitBeta):
-    aNew = (1 / (1 + 1 * np.exp(- 75 * commitBeta * (x - (commitBeta + 1) / 2))) + 1) / 2
+    aNew = (1 / (1 + 1 * np.exp(- commitBeta * (x - 0.75))) + 1) / 2
     return aNew
 
 
-def goalCommited(probList, commitBeta):
+def commitWithDelay(probList, commitBeta):
     a, b = probList
     if a > 0.5:
         aNew = sigmoidScale(a, commitBeta)
@@ -34,14 +39,14 @@ if __name__ == '__main__':
     # print('new', goalCommited(p, commitBeta))
 
     import matplotlib.pyplot as plt
-    pList = list(np.arange(0, 1.1, 0.1))
+    pList = list(np.arange(0.5, 1.1, 0.1))
     print(pList)
-    for commitBeta in np.arange(1, 20, 2):
+    for commitBeta in np.arange(20, 40, 1):
         pNew = []
         for p in pList:
-            pNew.append(goalCommit([p, 1 - p], commitBeta))
+            pNew.append(max(commitWithDelay([p, 1 - p], commitBeta)))
         plt.plot(pList, pNew)
         plt.title('commitBeta={}'.format(commitBeta))
-        plt.xlim((0, 1))
-        plt.ylim((0, 1))
+        plt.xlim((0.5, 1))
+        plt.ylim((0.5, 1))
         plt.show()

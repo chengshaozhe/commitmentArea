@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.path.join(os.path.dirname(__file__), '..')))
 import numpy as np
 import unittest
 from ddt import ddt, data, unpack
-from dataAnalysis.dataAnalysis import calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmentRatio, calculateFirstOutZoneRatio, calculateFirstIntentionRatio, calculateFirstIntention, calculateFirstIntentionConsistency, inferGoal
+from dataAnalysis.dataAnalysis import calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmentRatio, calculateFirstOutZoneRatio, calculateFirstIntentionRatio, calculateFirstIntention, calculateFirstIntentionConsistency, inferGoal, calMidPoints
 
 
 @ddt
@@ -66,6 +66,13 @@ class TestAnalysisFunctions(unittest.TestCase):
     def testInferGoal(self, originGrid, aimGrid, targetGridA, targetGridB, groundTruthGoal):
         inferredGoal = inferGoal(originGrid, aimGrid, targetGridA, targetGridB)
         truthValue = np.array_equal(inferredGoal, groundTruthGoal)
+        self.assertTrue(truthValue)
+
+    @data(((6, 3), (4, 2), (2, 4), (4, 3)))
+    @unpack
+    def testCalMidPoint(self, playerGrid, target1, target2, groundTruthMidPoint):
+        midPoint = calMidPoints(playerGrid, target1, target2)
+        truthValue = np.array_equal(midPoint, groundTruthMidPoint)
         self.assertTrue(truthValue)
 
 

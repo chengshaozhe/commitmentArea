@@ -9,7 +9,7 @@ import pickle
 from scipy.stats import ttest_ind, entropy
 from scipy.interpolate import interp1d
 from sklearn.metrics import mutual_info_score as KL
-from dataAnalysis import calculateSE, calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmnetZone, calculateGridDis
+from dataAnalysis import calculateSE, calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmnetZone, calculateGridDis, calMidPoints
 
 
 def calculateSoftmaxProbability(acionValues, beta):
@@ -112,22 +112,6 @@ class CalFirstIntentionStepRatio:
         return firstIntentionStepRatio
 
 
-def calMidPoints(trajectory, target1, target2):
-    playerGrid = trajectory[0]
-    zone = calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2)
-    midpoints = list([(target1[0], target2[1]), (target2[0], target1[1])])
-    midPoint = list(set(zone).intersection(set(midpoints)))
-    return midPoint[0]
-
-
-def isTrajHasMidPoints(trajectory, target1, target2):
-    trajectory = list(map(tuple, trajectory))
-    midPoint = calMidPoints(trajectory, target1, target2)
-    hasMidPoint = 1 if midPoint in trajectory else 0
-
-    return hasMidPoint
-
-
 def sliceTraj(trajectory, midPoint):
     trajectory = list(map(tuple, trajectory))
     index = trajectory.index(midPoint) + 1
@@ -136,7 +120,8 @@ def sliceTraj(trajectory, midPoint):
 
 def calDisToMidPointTraj(trajectory, target1, target2):
     trajectory = list(map(tuple, trajectory))
-    midPoint = calMidPoints(trajectory, target1, target2)
+    playerGrid = trajectory[0]
+    midPoint = calMidPoints(playerGrid, target1, target2)
     disToMidPointTraj = [calculateGridDis(grid, midPoint) for grid in trajectory]
 
     x = np.divide(np.arange(len(disToMidPointTraj)), len(disToMidPointTraj) - 1)

@@ -227,11 +227,11 @@ if __name__ == '__main__':
     stdList = []
     statDFList = []
 
-    # participants = ['human', 'softmaxBeta2.5']
     commitBetaList = np.arange(1, 10, 2)
     commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
-    participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
+    # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
+    participants = ['human', 'max']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -313,7 +313,7 @@ if __name__ == '__main__':
     # print(ranksums(statDFList[0], statDFList[1]))
 
     lables = participants
-    # lables = ['Human', 'RL Agent']
+    lables = ['Human', 'RL Agent']
 
     xnew = np.linspace(0., 1., 30)
     xnewSig = xnew[sigArea]
@@ -325,8 +325,8 @@ if __name__ == '__main__':
     # plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
 
  # sig area line
-    # for sigLine in [xnewSig[0], xnewSig[-1]]:
-    #     plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
+    for sigLine in [xnewSig[0], xnewSig[-1]]:
+        plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
 
     # xlabels = ['firstIntentionStepRatio']
     # labels = participants

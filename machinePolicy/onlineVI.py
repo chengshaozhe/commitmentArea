@@ -226,7 +226,7 @@ def runVI(sheep_states, goalRewardList):
 if __name__ == '__main__':
 
     sheep_states = ((6, 2), (6, 6))
-    goalRewardList = [100, 60]
+    goalRewardList = [100, 100]
 
     Q_dict = runVI(sheep_states, goalRewardList)
     print(Q_dict)

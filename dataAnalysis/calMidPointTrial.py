@@ -9,12 +9,7 @@ import pickle
 from scipy.stats import ttest_ind, entropy
 from scipy.interpolate import interp1d
 from sklearn.metrics import mutual_info_score as KL
-from dataAnalysis import calculateSE, calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmnetZone
-
-
-def calculateSoftmaxProbability(acionValues, beta):
-    newProbabilityList = list(np.divide(np.exp(np.multiply(beta, acionValues)), np.sum(np.exp(np.multiply(beta, acionValues)))))
-    return newProbabilityList
+from dataAnalysis import calculateSE, calculateAvoidCommitmnetZoneAll, calculateAvoidCommitmnetZone, calculateGridDis, calMidPoints, calculateSoftmaxProbability
 
 
 class SoftmaxPolicy:
@@ -112,19 +107,11 @@ class CalFirstIntentionStepRatio:
         return firstIntentionStepRatio
 
 
-def calMidPoints(trajectory, target1, target2):
-    playerGrid = trajectory[0]
-    zone = calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2)
-    midpoints = list([(target1[0], target2[1]), (target2[0], target1[1])])
-    midPoint = list(set(zone).intersection(set(midpoints)))
-    return midPoint[0]
-
-
 def isTrajHasMidPoints(trajectory, target1, target2):
     trajectory = list(map(tuple, trajectory))
-    midPoint = calMidPoints(trajectory, target1, target2)
+    initPlayerGrid = trajectory[0]
+    midPoint = calMidPoints(initPlayerGrid, target1, target2)
     hasMidPoint = 1 if midPoint in trajectory else 0
-
     return hasMidPoint
 
 
@@ -153,7 +140,8 @@ if __name__ == '__main__':
     commitBetaList = np.arange(1, 10, 2)
     commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
-    participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
+    # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
+    participants = ['human', 'softmaxBeta2.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -161,16 +149,15 @@ if __name__ == '__main__':
         nubOfSubj = len(df["name"].unique())
         print(participant, nubOfSubj)
 
-        df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-
+        # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         # df = df[(df['areaType'] == 'rect')]
+        df = df[(df['areaType'] != 'none')]
+
         # print(len(df))
         df['hasMidPoint'] = df.apply(lambda x: isTrajHasMidPoints(eval(x['trajectory']), eval(x['target1']), eval(x['target2'])), axis=1)
 
         # dfExpTrail = df[(df['areaType'] == 'rect')]
-
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
-
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
