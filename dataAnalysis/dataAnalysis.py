@@ -62,9 +62,12 @@ def calculateAvoidCommitmnetZone(playerGrid, target1, target2):
 
 def calMidPoints(playerGrid, target1, target2):
     zone = calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2)
-    playerDisToZoneGrid = [calculateGridDis(playerGrid, zoneGrid) for zoneGrid in zone]
-    midPointIndex = np.argmax(playerDisToZoneGrid)
-    midPoint = zone[midPointIndex]
+    if zone:
+        playerDisToZoneGrid = [calculateGridDis(playerGrid, zoneGrid) for zoneGrid in zone]
+        midPointIndex = np.argmax(playerDisToZoneGrid)
+        midPoint = zone[midPointIndex]
+    else:
+        midPoint = []
     return midPoint
 
 

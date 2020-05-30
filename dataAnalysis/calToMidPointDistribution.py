@@ -133,6 +133,16 @@ def calDisToMidPointTraj(trajectory, target1, target2):
     return posterior
 
 
+def calDisToMidPointTrajLen(trajectory, target1, target2):
+    trajectory = list(map(tuple, trajectory))
+    playerGrid = trajectory[0]
+    midPoint = calMidPoints(playerGrid, target1, target2)
+    disToMidPointTraj = [calculateGridDis(grid, midPoint) for grid in trajectory]
+
+    meanDis = np.mean(disToMidPointTraj)
+    return meanDis
+
+
 if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
@@ -171,6 +181,8 @@ if __name__ == '__main__':
 
         df['posterior'] = df.apply(lambda x: calDisToMidPointTraj(eval(x['trajectory']), eval(x['target1']), eval(x['target2'])), axis=1)
 
+        df['disToMidPoint'] = df.apply(lambda x: calDisToMidPointTrajLen(eval(x['trajectory']), eval(x['target1']), eval(x['target2'])), axis=1)
+
         # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
         dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
@@ -199,7 +211,9 @@ if __name__ == '__main__':
         # statDF['firstIntentionStepRatio'] = dfExpTrail.groupby('name')["firstIntentionStepRatio"].mean()
         # statDF['goalPosterior'] = dfExpTrail.groupby('name')["goalPosterior"].mean()
 
-        # print('firstIntentionStep', np.mean(statDF['firstIntentionStep']))
+        statDF['disToMidPoint'] = dfExpTrail.groupby('name')["disToMidPoint"].mean()
+
+        print('disToMidPoint', np.mean(statDF['disToMidPoint']))
         print('')
 
         stats = statDF.columns

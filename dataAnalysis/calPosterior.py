@@ -231,7 +231,7 @@ if __name__ == '__main__':
     commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
     # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
-    participants = ['human', 'max']
+    participants = ['human', 'softmaxBeta0.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
