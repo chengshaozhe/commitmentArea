@@ -167,7 +167,7 @@ class AvoidCommitPolicy:
         return actionDict
 
 
-class CommitmentWithDeliberationModel:
+class DeliberateIntentionModel:
     def __init__(self, goalPolicy, avoidCommitPolicy):
         self.goalPolicy = goalPolicy
         self.avoidCommitPolicy = avoidCommitPolicy
@@ -186,6 +186,78 @@ class CommitmentWithDeliberationModel:
         return actionDict
 
 
+class InferGoalPosterior:
+    def __init__(self, goalPolicy, commitBeta):
+        self.goalPolicy = goalPolicy
+        self.commitBeta = commitBeta
+
+    def __call__(self, playerGrid, action, target1, target2, priorList):
+        targets = list([target1, target2])
+
+        priorList = goalCommit(priorList, self.commitBeta)
+        likelihoodList = [self.goalPolicy(playerGrid, goal).get(action) for goal in targets]
+        posteriorUnnormalized = [prior * likelihood for prior, likelihood in zip(priorList, likelihoodList)]
+
+        evidence = sum(posteriorUnnormalized)
+        posteriorList = [posterior / evidence for posterior in posteriorUnnormalized]
+
+        return posteriorList
+
+
+def calCommitStep(initGrid, target1, target2):
+    distanceDiff = abs(calculateGridDis(initGrid, target1) - calculateGridDis(initGrid, target2))
+
+    return commitStep
+
+
+class CommitWithDeliberatedIntentionModel:
+    def __init__(self, goalPolicy, avoidCommitPolicy):
+        self.goalPolicy = goalPolicy
+        self.avoidCommitPolicy = avoidCommitPolicy
+
+    def __call__(self, selfGrid, target1, target2, trajectory):
+        trajectory = list(map(tuple, trajectory))
+        initGrid = trajectory[0]
+        goal = trajectory[-1]
+        pCommit = isCommited(selfGrid, target1, target2)
+        priorList = [1 - pCommit, pCommit]
+        commited = np.random.choice(2, p=priorList)
+        if commited:
+            actionDict = self.goalPolicy(selfGrid, goal)
+        else:
+            actionDict = self.avoidCommitPolicy(selfGrid, target1, target2, trajectory)
+        return actionDict
+
+
+class StickWithDeliberatedIntentionModel:
+    def __init__(self, goalPolicy, avoidCommitPolicy):
+        self.goalPolicy = goalPolicy
+        self.avoidCommitPolicy = avoidCommitPolicy
+        self.commitFlag = None
+
+    def __call__(self, selfGrid, target1, target2, trajectory):
+        initGrid = trajectory[0]
+        goal = trajectory[-1]
+
+        if selfGrid == initGrid:
+            self.commitFlag = 0
+
+        pCommit = isCommited(selfGrid, target1, target2)
+        priorList = [1 - pCommit, pCommit]
+
+        if self.commitFlag:
+            commited = 1
+        else:
+            commited = np.random.choice(2, p=priorList)
+
+        if commited:
+            actionDict = self.goalPolicy(selfGrid, goal)
+            self.commitFlag = True
+        else:
+            actionDict = self.avoidCommitPolicy(selfGrid, target1, target2, trajectory)
+        return actionDict
+
+
 class CalDeliberateIntentionLh:
     def __init__(self, deliberatePolicy):
         self.deliberatePolicy = deliberatePolicy
@@ -198,9 +270,6 @@ class CalDeliberateIntentionLh:
             likelihoodGoal = self.deliberatePolicy(playerGrid, target1, target2, trajectory).get(action)
             likelihoodList.append(likelihoodGoal)
         logLikelihood = np.prod(likelihoodList)
-        # print(likelihoodList)
-        # print(logLikelihood)
-        # print('')
         return logLikelihood
 
 
@@ -248,8 +317,8 @@ if __name__ == '__main__':
     goal_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
     goalPolicy = GoalPolicy(goal_dict, softmaxBeta)
 
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-    RLPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
+    # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    # RLPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
 
     # playerGrid, target1, target2 = [(3, 3), (6, 4), (4, 6)]
     # p = list(goalPolicy(playerGrid, target1).values())
@@ -267,16 +336,23 @@ if __name__ == '__main__':
     aimAction = [(0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (0, 1), (0, 1), (0, 1)]
     target1, target2 = (6, 13), (4, 11)
     # calLogLikelihood = CalRLLikelihood(RLPolicy)
-    calImmediateIntentionLh = CalImmediateIntentionLh(goalPolicy)
 
     avoidCommitWithMidpiontPolicy = AvoidCommitWithMidpiontPolicy(goalPolicy)
     avoidCommitPolicy = AvoidCommitPolicy(goalPolicy)
 
-    commitmentWithDeliberationModel = CommitmentWithDeliberationModel(goalPolicy, avoidCommitPolicy)
+    deliberateIntentionModel = DeliberateIntentionModel(goalPolicy, avoidCommitPolicy)
+    stickWithDeliberatedIntentionModel = StickWithDeliberatedIntentionModel(goalPolicy, avoidCommitPolicy)
+    commitWihtDeliberatedIntentionModel = CommitWithDeliberatedIntentionModel(goalPolicy, avoidCommitPolicy)
 
-    calTrajLikelihood = CalDeliberateIntentionLh(commitmentWithDeliberationModel)
+    calImmediateIntentionLh = CalImmediateIntentionLh(goalPolicy)
 
-    calTrajLikelihoodList = [calImmediateIntentionLh, calTrajLikelihood]
+    calTrajLikelihood = CalDeliberateIntentionLh(deliberateIntentionModel)
+
+    calStickToDeliberatedModel = CalDeliberateIntentionLh(stickWithDeliberatedIntentionModel)
+
+    calCommitWithDeliberation = CalDeliberateIntentionLh(commitWihtDeliberatedIntentionModel)
+
+    calTrajLikelihoodList = [calImmediateIntentionLh, calStickToDeliberatedModel, calCommitWithDeliberation]
 
     likehoodLists = [calLikelihood(trajectory, aimAction, target1, target2) for calLikelihood in calTrajLikelihoodList]
 
@@ -285,36 +361,49 @@ if __name__ == '__main__':
 
 
 ##
-    resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
-    participant = 'human'
-    dataPath = os.path.join(resultsPath, participant)
-    df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
-    print(df.columns)
+#     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
+#     participant = 'human'
+#     dataPath = os.path.join(resultsPath, participant)
+#     df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
+#     print(df.columns)
 
-    # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-    # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-    df['likelihood'] = df.apply(lambda x: calLogLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+#     # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+#     # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+#     # df['likelihood'] = df.apply(lambda x: calLogLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
-    df['likelihood2'] = df.apply(lambda x: calImmediateIntentionLh(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+#     df['likelihood2'] = df.apply(lambda x: calImmediateIntentionLh(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
-    df['likelihood3'] = df.apply(lambda x: calTrajLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+#     df['likelihood3'] = df.apply(lambda x: calTrajLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
-    import random
-    random.seed(147)
-    numOfSamples = 30
-    samples = random.sample(range(len(df['likelihood2'])), numOfSamples)
-    likelihoodList = np.array(df['likelihood'])[samples]
-    likelihoodList2 = np.array(df['likelihood2'])[samples]
-    likelihoodList3 = np.array(df['likelihood3'])[samples]
-#
-    likelihoodAll = np.prod(likelihoodList)
-    likelihoodAll2 = np.prod(likelihoodList2)
-    likelihoodAll3 = np.prod(likelihoodList3)
+#     df['likelihood4'] = df.apply(lambda x: calStickToDeliberatedModel(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
-    bic = calBIC(np.log(likelihoodAll))
-    bic2 = calBIC(np.log(likelihoodAll2))
-    bic3 = calBIC(np.log(likelihoodAll3))
+#     df['likelihood5'] = df.apply(lambda x: calCommitWithDeliberation(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
-    print(bic)
-    print(bic2)
-    print(bic3)
+#     import random
+#     random.seed(147)
+#     numOfSamples = 30
+#     samples = random.sample(range(len(df['likelihood2'])), numOfSamples)
+#     # likelihoodList = np.array(df['likelihood'])[samples]
+#     likelihoodList2 = np.array(df['likelihood2'])[samples]
+#     likelihoodList3 = np.array(df['likelihood3'])[samples]
+#     likelihoodList4 = np.array(df['likelihood4'])[samples]
+#     likelihoodList5 = np.array(df['likelihood5'])[samples]
+
+# #
+#     # likelihoodAll = np.prod(likelihoodList)
+#     likelihoodAll2 = np.prod(likelihoodList2)
+#     likelihoodAll3 = np.prod(likelihoodList3)
+#     likelihoodAll4 = np.prod(likelihoodList4)
+#     likelihoodAll5 = np.prod(likelihoodList5)
+
+#     # bic = calBIC(np.log(likelihoodAll))
+#     bic2 = calBIC(np.log(likelihoodAll2))
+#     bic3 = calBIC(np.log(likelihoodAll3))
+#     bic4 = calBIC(np.log(likelihoodAll4))
+#     bic5 = calBIC(np.log(likelihoodAll5))
+
+#     # print(bic)
+#     print(bic2)
+#     print(bic3)
+#     print(bic4)
+#     print(bic5)

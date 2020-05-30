@@ -250,8 +250,8 @@ if __name__ == '__main__':
         df['goalPosterior'] = df.apply(lambda x: calPosterior(x['goalPosteriorList']), axis=1)
         # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
-        dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        # dfExpTrail = df[(df['areaType'] == 'rect')]
+        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        dfExpTrail = df[(df['areaType'] == 'rect')]
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
 

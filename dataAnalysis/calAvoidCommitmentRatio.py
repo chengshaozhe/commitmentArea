@@ -22,7 +22,7 @@ if __name__ == '__main__':
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
 
         df['avoidCommitmentZone'] = df.apply(lambda x: calculateAvoidCommitmnetZone(eval(x['playerGrid']), eval(x['target1']), eval(x['target2'])), axis=1)
-        df['avoidCommitmentRatio'] = df.apply(lambda x: calculateAvoidCommitmentRatio(eval(x['trajectory']), x['avoidCommitmentZone']), axis=1)
+        df['avoidCommitmentRatio'] = df.apply(lambda x: calculateFirstOutZoneRatio(eval(x['trajectory']), x['avoidCommitmentZone']), axis=1)
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(eval(x['goal'])), axis=1)
         df['firstIntentionRatio'] = df.apply(lambda x: calculateFirstIntentionRatio(eval(x['goal'])), axis=1)
         # df.to_csv("all.csv")
