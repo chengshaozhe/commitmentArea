@@ -425,7 +425,7 @@ if __name__ == '__main__':
         normlizedQValueDiff = {s: calMaxDiff(normlizedQ_dict[s].values()) for s in normlizedQ_dict.keys()}
         actionProbMax = {s: max(normlizedQ_dict[s].values()) for s in Q_dict.keys()}
 
-        mapValue = 'QValueDiff'
+        mapValue = 'V'
         heatMapValue = eval(mapValue)
         y = dict_to_array(heatMapValue)
         y = y.reshape((gridSize, gridSize))
