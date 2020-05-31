@@ -321,8 +321,8 @@ if __name__ == '__main__':
     goal_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
     goalPolicy = GoalPolicy(goal_dict, softmaxBeta)
 
-    # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-    # RLPolicy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    RLPolicy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
 
     # playerGrid, target1, target2 = [(3, 3), (6, 4), (4, 6)]
     # p = list(goalPolicy(playerGrid, target1).values())
@@ -339,7 +339,7 @@ if __name__ == '__main__':
 
     aimAction = [(0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (0, 1), (0, 1), (0, 1)]
     target1, target2 = (6, 13), (4, 11)
-    # calLogLikelihood = CalRLLikelihood(RLPolicy)
+    calLogLikelihood = CalRLLikelihood(RLPolicy)
 
     avoidCommitWithMidpiontPolicy = AvoidCommitWithMidpiontPolicy(goalPolicy)
     avoidCommitPolicy = AvoidCommitPolicy(goalPolicy)
@@ -371,10 +371,10 @@ if __name__ == '__main__':
     df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
     print(df.columns)
 
-    # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+    df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
     # df = df[(df['areaType'] == 'expRect') | (df['areaType'] == 'rect')]
 
-    # df['likelihood'] = df.apply(lambda x: calLogLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+    df['likelihood1'] = df.apply(lambda x: calLogLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
     df['likelihood2'] = df.apply(lambda x: calImmediateIntentionLh(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
@@ -390,67 +390,99 @@ if __name__ == '__main__':
     stdList = []
 
     import random
-    random.seed(147)
-    numOfSamples = 30
+    # random.seed(33)
+    numOfSamples = 109
 
     def calBICDF(df, colnames):
-        samples = random.sample(range(len(df[colnames])), numOfSamples)
+        samples = random.sample(range(len(df[colnames])), min(len(df[colnames]), numOfSamples))
         likelihoodList = np.array(df[colnames])[samples]
         likelihoodAll = np.prod(likelihoodList)
         bic = calBIC(np.log(likelihoodAll))
         return bic
 
+    statDF['modelBic1'] = df.groupby('name').apply(calBICDF, 'likelihood1')
     statDF['modelBic2'] = df.groupby('name').apply(calBICDF, 'likelihood2')
     statDF['modelBic3'] = df.groupby('name').apply(calBICDF, 'likelihood3')
     statDF['modelBic4'] = df.groupby('name').apply(calBICDF, 'likelihood4')
     statDF['modelBic5'] = df.groupby('name').apply(calBICDF, 'likelihood5')
 
     stats = statDF.columns
-    statsList.append([statDF[stat].tolist() for stat in stats])
+    # statsList.append([statDF[stat].tolist() for stat in stats])
 
-    # statsList.append([np.mean(statDF[stat]) for stat in stats])
+    statsList.append([np.mean(statDF[stat]) for stat in stats])
     stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
-    print(statsList)
-    xlabels = ['model1', 'model2', 'model3', 'model4']
+    # # print(statsList)
+    xlabels = ['model1', 'model2', 'model3', 'model4', 'model5']
 
-    # x = np.arange(len(xlabels))
-    # totalWidth, n = 0.6, len(xlabels)
-    # width = totalWidth / n
-    # x = x - (totalWidth - width) / 3
-    # plt.bar(x + width, statsList[0], yerr=stdList[0], width=width)
-    # plt.xticks(x, xlabels)
+    x = np.arange(len(xlabels))
+    totalWidth, n = 0.6, len(xlabels)
+    width = totalWidth / n
+    x = x - (totalWidth - width) / 3
+    plt.bar(x + width, statsList[0], yerr=stdList[0], width=width)
+    plt.xticks(x, xlabels)
 
-    x = np.arange(1, len(df["name"].unique()) + 1)
-    for i in range(len(xlabels)):
-        plt.plot(x, statsList[0][i], label=xlabels[i], linewidth=1)
+    # x = np.arange(1, len(df["name"].unique()) + 1)
+    # for i in range(len(xlabels)):
+    #     plt.plot(x, statsList[0][i], label=xlabels[i], linewidth=1)
 
     plt.ylabel('BIC')
     plt.legend(loc='best')
     plt.title('commit to goal ratio')  # Intention Consistency
-    plt.show()
+    # plt.show()
+    bicList = []
+    bic2List = []
+    bic3List = []
+    bic4List = []
+    bic5List = []
 
-    samples = random.sample(range(len(df['likelihood2'])), numOfSamples)
-    # likelihoodList = np.array(df['likelihood'])[samples]
-    likelihoodList2 = np.array(df['likelihood2'])[samples]
-    likelihoodList3 = np.array(df['likelihood3'])[samples]
-    likelihoodList4 = np.array(df['likelihood4'])[samples]
-    likelihoodList5 = np.array(df['likelihood5'])[samples]
+    # for _ in range(100):
+    #     samples = random.sample(range(len(df['likelihood2'])), min(len(df['likelihood2']), numOfSamples))
+    #     likelihoodList = np.array(df['likelihood1'])[samples]
+    #     likelihoodList2 = np.array(df['likelihood2'])[samples]
+    #     likelihoodList3 = np.array(df['likelihood3'])[samples]
+    #     likelihoodList4 = np.array(df['likelihood4'])[samples]
+    #     likelihoodList5 = np.array(df['likelihood5'])[samples]
 
-    # likelihoodAll = np.prod(likelihoodList)
-    likelihoodAll2 = np.prod(likelihoodList2)
-    likelihoodAll3 = np.prod(likelihoodList3)
-    likelihoodAll4 = np.prod(likelihoodList4)
-    likelihoodAll5 = np.prod(likelihoodList5)
+    #     likelihoodAll = np.prod(likelihoodList)
+    #     likelihoodAll2 = np.prod(likelihoodList2)
+    #     likelihoodAll3 = np.prod(likelihoodList3)
+    #     likelihoodAll4 = np.prod(likelihoodList4)
+    #     likelihoodAll5 = np.prod(likelihoodList5)
 
-    # bic = calBIC(np.log(likelihoodAll))
-    bic2 = calBIC(np.log(likelihoodAll2))
-    bic3 = calBIC(np.log(likelihoodAll3))
-    bic4 = calBIC(np.log(likelihoodAll4))
-    bic5 = calBIC(np.log(likelihoodAll5))
+    #     bic = calBIC(np.log(likelihoodAll))
+    #     bic2 = calBIC(np.log(likelihoodAll2))
+    #     bic3 = calBIC(np.log(likelihoodAll3))
+    #     bic4 = calBIC(np.log(likelihoodAll4))
+    #     bic5 = calBIC(np.log(likelihoodAll5))
 
-    # print(bic)
-    print(bic2)
-    print(bic3)
-    print(bic4)
-    print(bic5)
+    #     # bic = calBICFull(np.log(likelihoodAll), numOfSamples, 2)
+    #     # bic2 = calBICFull(np.log(likelihoodAll2), numOfSamples, 2)
+    #     # bic3 = calBICFull(np.log(likelihoodAll3), numOfSamples, 2)
+    #     # bic4 = calBICFull(np.log(likelihoodAll4), numOfSamples, 3)
+    #     # bic5 = calBICFull(np.log(likelihoodAll5), numOfSamples, 4)
+
+    #     bicList.append(bic)
+    #     bic2List.append(bic2)
+    #     bic3List.append(bic3)
+    #     bic4List.append(bic4)
+    #     bic5List.append(bic5)
+
+    # print(np.mean(bicList))
+    # print(np.mean(bic2List))
+    # print(np.mean(bic3List))
+    # print(np.mean(bic4List))
+    # print(np.mean(bic5List))
+
+    # xlabels = ['RL', 'instantIntention', 'deliberateThenStick', 'deliberateCommit']
+
+    # statsList = [np.mean(bicList), np.mean(bic2List), np.mean(bic4List), np.mean(bic3List)]
+    # x = np.arange(len(xlabels))
+    # totalWidth, n = 0.6, len(xlabels)
+    # width = totalWidth / n
+    # x = x - (totalWidth - width) / 3
+    # plt.ylabel('BIC')
+    # plt.bar(x + width, statsList, width=width)
+    # plt.xticks(x, xlabels)
+    # plt.title('Model comparison')
+    # plt.show()

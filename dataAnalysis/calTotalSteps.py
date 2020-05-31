@@ -15,7 +15,11 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    participants = ['human', 'softmaxBeta0.5','softmaxBeta1','softmaxBeta2.5']
+    softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
+
+    softmaxBetaStr = ['softmaxBeta' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+
+    participants = ['human'] + softmaxBetaStr
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)

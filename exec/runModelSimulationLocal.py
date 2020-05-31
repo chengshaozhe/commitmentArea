@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxPolicy
+from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
 from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -76,31 +76,31 @@ def main():
     midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    # policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-    policy = None
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    # policy = None
 
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+    goal_Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
 
     initPrior = [0.5, 0.5]
 
-    softmaxBeta = 2.5
-    goalPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
+    # softmaxBeta = 2.5
+    # goalPolicy = SoftmaxGoalPolicy(goal_Q_dict, softmaxBeta)
     priorBeta = 5
 
     commitBetaList = np.arange(1, 10, 1)
 
     rewardVarianceList = [50]
-    softmaxBetaList = [2.5]
-
-    goalPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
-    # for softmaxBeta in softmaxBetaList:
-    for commitBeta in commitBetaList:
-        for i in range(10):
+    softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
+    print(softmaxBetaList)
+    for softmaxBeta in softmaxBetaList:
+        policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
+        # for commitBeta in commitBetaList:
+        for i in range(33):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -124,28 +124,32 @@ def main():
             noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
     # deubg
-            conditionList = [expCondition] * 27
+            # conditionList = [expCondition] * 27
             # noiseDesignValues = ['special'] * 27
     # debug
-            # modelController = ModelController(policy, gridSize, softmaxBeta)
-            modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
+            modelController = ModelController(policy, gridSize, softmaxBeta)
+            # modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
 
             # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
             controller = modelController
 
-            # normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
-            # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+            normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
+            specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
-            inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
-            normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
-            specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
+            # inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
+            # normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
+            # specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
 
             # normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
             # specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
 
             experimentValues = co.OrderedDict()
-            experimentValues["name"] = "commitBeta" + str(commitBeta) + '_' + str(i)
-            resultsDirPath = os.path.join(resultsPath, "commitBeta" + str(commitBeta))
+            # experimentValues["name"] = "commitBeta" + str(commitBeta) + '_' + str(i)
+            # resultsDirPath = os.path.join(resultsPath, "commitBeta" + str(commitBeta))
+
+            experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i)
+            resultsDirPath = os.path.join(resultsPath, "softmaxBeta" + str(softmaxBeta))
+
             if not os.path.exists(resultsDirPath):
                 os.makedirs(resultsDirPath)
             writerPath = os.path.join(resultsDirPath, experimentValues["name"] + '.csv')
