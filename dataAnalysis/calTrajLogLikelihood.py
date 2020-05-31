@@ -164,6 +164,24 @@ class DeliberateIntentionModel:
         return actionDict
 
 
+class DeliberateIntentionCommitModel:
+    def __init__(self, goalPolicy, avoidCommitPolicy):
+        self.goalPolicy = goalPolicy
+        self.avoidCommitPolicy = avoidCommitPolicy
+
+    def __call__(self, selfGrid, target1, target2, trajectory):
+        trajectory = list(map(tuple, trajectory))
+        initGrid = trajectory[0]
+        goal = trajectory[-1]
+        pCommit = isCommited(selfGrid, target1, target2)
+        priorList = [pCommit, 1 - pCommit]
+        actionProbList = [list(self.goalPolicy(selfGrid, goal).values()), list(self.avoidCommitPolicy(selfGrid, target1, target2, trajectory).values())]
+        actionDis = calBasePolicy(priorList, actionProbList)
+        actionKeys = self.goalPolicy(selfGrid, goal).keys()
+        actionDict = dict(zip(actionKeys, actionDis))
+        return actionDict
+
+
 class InferGoalPosterior:
     def __init__(self, goalPolicy, commitBeta):
         self.goalPolicy = goalPolicy
@@ -249,7 +267,7 @@ class CalRLLikelihood():
         for playerGrid, action in zip(trajectory, aimAction):
             likelihood = self.policy(playerGrid, target1, target2).get(action)
             likelihoodList.append(likelihood)
-        likelihoodList = list(filter(lambda x: x > 0.01, likelihoodList))
+        # likelihoodList = list(filter(lambda x: x > 0.2, likelihoodList))
         likelihoodAll = np.prod(likelihoodList)
         return likelihoodAll
 
@@ -266,7 +284,7 @@ class CalImmediateIntentionLh:
             likelihoodGoal = self.goalPolicy(playerGrid, goal).get(action)
             likelihoodList.append(likelihoodGoal)
 
-        likelihoodList = list(filter(lambda x: x > 0.01, likelihoodList))
+        # likelihoodList = list(filter(lambda x: x > 0.2, likelihoodList))
         logLikelihood = np.prod(likelihoodList)
         return logLikelihood
 
@@ -283,7 +301,7 @@ class CalDeliberateIntentionLh:
             likelihoodGoal = self.deliberatePolicy(playerGrid, target1, target2, trajectory).get(action)
             likelihoodList.append(likelihoodGoal)
 
-        likelihoodList = list(filter(lambda x: x > 0.01, likelihoodList))
+        # likelihoodList = list(filter(lambda x: x > 0.2, likelihoodList))
         logLikelihood = np.prod(likelihoodList)
         return logLikelihood
 
@@ -391,7 +409,7 @@ if __name__ == '__main__':
 
     import random
     random.seed(147)
-    numOfSamples = 30
+    numOfSamples = 50
 
     def calBICDF(df, colnames):
         samples = random.sample(range(len(df[colnames])), numOfSamples)
@@ -406,24 +424,24 @@ if __name__ == '__main__':
     statDF['modelBic5'] = df.groupby('name').apply(calBICDF, 'likelihood5')
 
     stats = statDF.columns
-    statsList.append([statDF[stat].tolist() for stat in stats])
+    # statsList.append([statDF[stat].tolist() for stat in stats])
 
-    # statsList.append([np.mean(statDF[stat]) for stat in stats])
+    statsList.append([np.mean(statDF[stat]) for stat in stats])
     stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
     print(statsList)
     xlabels = ['model1', 'model2', 'model3', 'model4']
 
-    # x = np.arange(len(xlabels))
-    # totalWidth, n = 0.6, len(xlabels)
-    # width = totalWidth / n
-    # x = x - (totalWidth - width) / 3
-    # plt.bar(x + width, statsList[0], yerr=stdList[0], width=width)
-    # plt.xticks(x, xlabels)
+    x = np.arange(len(xlabels))
+    totalWidth, n = 0.6, len(xlabels)
+    width = totalWidth / n
+    x = x - (totalWidth - width) / 3
+    plt.bar(x + width, statsList[0], yerr=stdList[0], width=width)
+    plt.xticks(x, xlabels)
 
-    x = np.arange(1, len(df["name"].unique()) + 1)
-    for i in range(len(xlabels)):
-        plt.plot(x, statsList[0][i], label=xlabels[i], linewidth=1)
+    # x = np.arange(1, len(df["name"].unique()) + 1)
+    # for i in range(len(xlabels)):
+    #     plt.plot(x, statsList[0][i], label=xlabels[i], linewidth=1)
 
     plt.ylabel('BIC')
     plt.legend(loc='best')
@@ -443,6 +461,7 @@ if __name__ == '__main__':
     likelihoodAll4 = np.prod(likelihoodList4)
     likelihoodAll5 = np.prod(likelihoodList5)
 
+    __import__('ipdb').set_trace()
     # bic = calBIC(np.log(likelihoodAll))
     bic2 = calBIC(np.log(likelihoodAll2))
     bic3 = calBIC(np.log(likelihoodAll3))
