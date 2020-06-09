@@ -52,16 +52,9 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
-<<<<<<< HEAD
-<<<<<<< HEAD
-    participants = ['human', 'softmaxBeta0.5', 'softmaxBeta2.5']
-=======
-    participants = ['human', 'softmaxBeta2.5']
-=======
-    participants = ['human', 'softmaxBeta2.5', 'prior5SoftmaxBeta2.5']
->>>>>>> d0db290291836a539a8121c6853aa01310295a03
 
->>>>>>> e6d27f42345835b6b6f8be297fc37850942cf7cd
+    participants = ['human', 'softmaxBeta0.4']
+
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -89,7 +82,7 @@ if __name__ == '__main__':
 
         # statDF.to_csv("statDF.csv")
 
-        print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
+        # print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
         # print('afterNoiseFirstIntentionStep', np.mean(statDF['afterNoiseFirstIntentionStep']))
 
         print('')
