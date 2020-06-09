@@ -375,7 +375,7 @@ class RunVI:
 
         V_arr = V_dict_to_array(V, S)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
-        Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        Q_dict = {(s, goalStates): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
 
         return Q_dict
 
