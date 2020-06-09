@@ -188,11 +188,8 @@ if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
     # Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-<<<<<<< HEAD
-    softmaxBeta = 0.44
-=======
+
     softmaxBeta = 0.5
->>>>>>> d7c75e6313bf245c20c349803ebf5d2dffddc624
     softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     # basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
     initPrior = [0.5, 0.5]
@@ -260,12 +257,9 @@ if __name__ == '__main__':
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
 
         # dfExpTrail = df
-<<<<<<< HEAD
-        dfExpTrail = df[(df['distanceDiff'] != 0) & (df['areaType'] != 'none')]
-=======
+        dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] != 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['noiseNumber'] != 'special')]
->>>>>>> d7c75e6313bf245c20c349803ebf5d2dffddc624
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['distanceDiff'] != 0) & (df['areaType'] == 'straightLine')]
@@ -328,7 +322,7 @@ if __name__ == '__main__':
     xnewSig = xnew[sigArea]
     ySig = [stats[sigArea] for stats in statsList]
 
-    lineWidth = 1
+    lineWidth = 3
     for i in range(len(statsList)):
         plt.plot(xnew, statsList[i], label=lables[i], linewidth=lineWidth)
     # plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
@@ -348,7 +342,7 @@ if __name__ == '__main__':
     # plt.xticks(x, xlabels)
     # plt.ylim((0, 1.1))
 
-    fontSize = 12
+    fontSize = 16
     plt.legend(loc='best', fontsize=fontSize)
     plt.xlabel('Time', fontsize=fontSize, color='black')
     plt.ylabel('Probability of Intention', fontsize=fontSize, color='black')

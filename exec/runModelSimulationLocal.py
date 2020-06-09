@@ -13,8 +13,8 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
-from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
+from src.controller import GoalModelController, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
+from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline, NormalTrialWithEarlyIntention, SpecialTrialWithEarlyIntention
 from src.experiment import Experiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
 from machinePolicy.onlineVI import runVI
@@ -76,7 +76,7 @@ def main():
     midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
     # policy = None
 
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
@@ -97,11 +97,11 @@ def main():
     rewardVarianceList = [50]
     # softmaxBetaList = np.round(np.arange(0.3, 1.1, 0.1), decimals=2)
     # print(softmaxBetaList)
-    softmaxBetaList = [0.41]
+    softmaxBetaList = [0.5, 1, 2.5]
     for softmaxBeta in softmaxBetaList:
-        policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
+        policy = SoftmaxRLPolicy(goal_Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
-        for i in range(100):
+        for i in range(33):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -128,15 +128,17 @@ def main():
             # conditionList = [expCondition] * 27
             # noiseDesignValues = ['special'] * 27
     # debug
-            modelController = ModelController(policy, gridSize, softmaxBeta)
-            # modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
+            # modelController = ModelController(policy, gridSize, softmaxBeta)
+            modelController = GoalModelController(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
 
             # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
             controller = modelController
 
-            normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
-            specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+            # normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
+            # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
+            normalTrial = NormalTrialWithEarlyIntention(controller, drawNewState, drawText, normalNoise, checkBoundary)
+            specialTrial = SpecialTrialWithEarlyIntention(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
             # inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
             # normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
             # specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)

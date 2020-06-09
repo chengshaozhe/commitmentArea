@@ -263,8 +263,8 @@ class GoalModelController():
         self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
         self.softmaxBeta = softmaxBeta
 
-    def __call__(self, playerGrid, targetGrid):
-        actionDict = self.policy(playerGrid, targetGrid)
+    def __call__(self, playerGrid, goal):
+        actionDict = self.policy(playerGrid, goal)
         if self.softmaxBeta < 0:
             action = chooseMaxAcion(actionDict)
         else:

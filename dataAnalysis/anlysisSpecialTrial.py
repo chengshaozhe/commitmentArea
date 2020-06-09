@@ -53,7 +53,7 @@ if __name__ == '__main__':
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
-    participants = ['human', 'softmaxBeta0.5']
+    participants = ['human', 'softmaxBeta2.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -108,7 +108,11 @@ if __name__ == '__main__':
     plt.xticks(ind, lables)
     plt.legend((p1[0], p2[0]), xlabels)
 
+    fontSize = 16
+    plt.xticks(fontsize=fontSize, color='black')
+    plt.yticks(fontsize=fontSize, color='black')
+
     plt.ylim((0, 1))
     # plt.legend(loc='best')
-    plt.title('Special Trial Intention Consistency')  # Intention Consistency
+    plt.title('Special Trial Intention Consistency', fontsize=fontSize, color='black')  # Intention Consistency
     plt.show()
