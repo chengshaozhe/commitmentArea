@@ -12,8 +12,8 @@ sys.setrecursionlimit(2**30)
 import pandas as pd
 import seaborn as sns
 
-from viz import *
-from reward import *
+# from viz import *
+# from reward import *
 
 
 class GridWorld():
@@ -291,7 +291,7 @@ def dict_to_array(V):
     return I
 
 
-def V_dict_to_array(V):
+def V_dict_to_array(V,S):
     V_lst = [V.get(s) for s in S]
     V_arr = np.asarray(V_lst)
     return V_arr
@@ -334,6 +334,51 @@ def pickle_dump_single_result(dirc="", prefix="result", name="", data=None):
     print ("saving %s at %s" % (name, path))
 
 
+class RunVI:
+    def __init__(self,gridSize,actionSpace,noiseSpace,noise,gamma,goalReward):
+        self.gridSize = gridSize
+        self.actionSpace = actionSpace
+        self.noiseSpace = noiseSpace
+        self.noise = noise
+        self.gamma = gamma
+        self.goalReward = goalReward
+
+    def __call__(self,goalStates):
+        gridSize, A,noiseSpace,noise,gamma,goalReward = self.gridSize,self.actionSpace,self.noiseSpace, self.noise, self.gamma,self.goalReward
+
+        env = GridWorld("test", nx=gridSize, ny=gridSize)
+        terminalValue = {s: goalReward for s in goalStates}
+        env.add_feature_map("goal", terminalValue, default=0)
+        env.add_terminals(list(goalStates))
+
+        S = tuple(it.product(range(env.nx), range(env.ny)))
+
+        mode = 1 - noise
+        transition_function = ft.partial(grid_transition_stochastic, noiseSpace=noiseSpace, terminals=goalStates, is_valid=env.is_state_valid, mode=mode)
+
+        # transition_function = ft.partial(grid_transition_noise, A=A, terminals=goalStates, is_valid=env.is_state_valid, noise=noise)
+
+        T = {s: {a: transition_function(s, a) for a in A} for s in S}
+        T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
+                             for a in A] for s in S])
+
+        costPerStep = -self.goalReward/(2*gridSize)
+        reward_func = ft.partial(
+            grid_reward, env=env, const=costPerStep, terminals=goalStates)
+
+        R = {s: {a: {sn: reward_func(s, a, sn) for sn in S} for a in A} for s in S}
+        R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
+                             for a in A] for s in S])
+
+        valueIteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100, terminals=goalStates)
+        V = valueIteration(S, A, T, R)
+        V_arr = V_dict_to_array(V, S)
+        Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
+        Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+
+        return Q_dict
+
+
 if __name__ == '__main__':
     gridSize = 15
     numSheeps = 2
@@ -353,7 +398,7 @@ if __name__ == '__main__':
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
         env = GridWorld("test", nx=gridSize, ny=gridSize)
-        goalReward = 100
+        goalReward = 10
         terminalValue = {s: goalReward for s in sheep_states}
         env.add_feature_map("goal", terminalValue, default=0)
         env.add_terminals(list(sheep_states))
@@ -384,8 +429,10 @@ if __name__ == '__main__':
         to_sheep_reward = ft.partial(
             distance_mean_reward, goal=sheep_states, unit=1)
 
+
+        costPerStep  = -10/(2*gridSize)
         grid_reward = ft.partial(
-            grid_reward, env=env, const=-1, terminals=sheep_states)
+            grid_reward, env=env, const=costPerStep, terminals=sheep_states)
 
         func_lst = [grid_reward]
         reward_func = ft.partial(sum_rewards, func_lst=func_lst)
@@ -405,7 +452,7 @@ if __name__ == '__main__':
         V.update(terminalValue)
         # print(V)
 
-        V_arr = V_dict_to_array(V)
+        V_arr = V_dict_to_array(V,S)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
         Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
         # print (Q_dict)

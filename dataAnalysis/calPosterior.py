@@ -188,7 +188,11 @@ if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
     # Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+<<<<<<< HEAD
     softmaxBeta = 0.44
+=======
+    softmaxBeta = 0.5
+>>>>>>> d7c75e6313bf245c20c349803ebf5d2dffddc624
     softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     # basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
     initPrior = [0.5, 0.5]
@@ -256,10 +260,15 @@ if __name__ == '__main__':
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
 
         # dfExpTrail = df
+<<<<<<< HEAD
         dfExpTrail = df[(df['distanceDiff'] != 0) & (df['areaType'] != 'none')]
+=======
+        # dfExpTrail = df[(df['distanceDiff'] != 0) & (df['areaType'] != 'none')]
+        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['noiseNumber'] != 'special')]
+>>>>>>> d7c75e6313bf245c20c349803ebf5d2dffddc624
 
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
-        # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
+        # dfExpTrail = df[(df['distanceDiff'] != 0) & (df['areaType'] == 'straightLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine') & (df['intentionedDisToTargetMin'] == 2)]
 
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
@@ -325,8 +334,8 @@ if __name__ == '__main__':
     # plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
 
  # sig area line
-    for sigLine in [xnewSig[0], xnewSig[-1]]:
-        plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
+    # for sigLine in [xnewSig[0], xnewSig[-1]]:
+        # plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
 
     # xlabels = ['firstIntentionStepRatio']
     # labels = participants

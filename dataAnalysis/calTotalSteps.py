@@ -16,8 +16,8 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # softmaxBetaList = np.round(np.arange(0.42, 0.5, 0.01), decimals=2)
-    softmaxBetaList = [0.4, 0.42, 0.45, 0.5]
-    softmaxBetaStr = ['softmaxBeta' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+    softmaxBetaList = [5]
+    softmaxBetaStr = ['softmaxBetaGoal' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
 
     participants = ['human'] + softmaxBetaStr
     for participant in participants:

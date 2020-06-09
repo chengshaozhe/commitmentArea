@@ -26,7 +26,8 @@ def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
 
 def calculateSoftmaxProbability(acionValues, beta):
 
-    expont = [min(500, i) for i in np.multiply(beta, acionValues)]
+    expont = np.multiply(beta, acionValues)
+    # expont = [min(500, i) for i in np.multiply(beta, acionValues)]
     newProbabilityList = list(np.divide(np.exp(expont), np.sum(np.exp(expont))))
 
     return newProbabilityList
@@ -69,6 +70,20 @@ class SoftmaxRLPolicy:
         softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
         softMaxActionDict = dict(zip(actionDict.keys(), softmaxProbabilityList))
         return softMaxActionDict
+
+
+class SampleSoftmaxAction:
+    def __init__(self, softmaxBeta):
+        self.softmaxBeta = softmaxBeta
+
+    def __call__(self, Q_dict, playerGrid):
+        actionKeys = list(Q_dict[playerGrid].keys())
+        actionValues = list(Q_dict[playerGrid].values())
+
+        softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
+        action = actionKeys[
+            list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
+        return action
 
 
 class NormalNoise():
@@ -231,6 +246,25 @@ class ModelController():
         actionProbs = self.policy(playerGrid, targetGrid1, targetGrid2).values()
         actionKeys = self.policy(playerGrid, targetGrid1, targetGrid2).keys()
         actionDict = dict(zip(actionKeys, actionProbs))
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = sampleAction(actionDict)
+
+        aimePlayerGrid = tuple(np.add(playerGrid, action))
+        # pg.time.delay(500)
+        return aimePlayerGrid, action
+
+
+class GoalModelController():
+    def __init__(self, policy, gridSize, softmaxBeta):
+        self.policy = policy
+        self.gridSize = gridSize
+        self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+        self.softmaxBeta = softmaxBeta
+
+    def __call__(self, playerGrid, targetGrid):
+        actionDict = self.policy(playerGrid, targetGrid)
         if self.softmaxBeta < 0:
             action = chooseMaxAcion(actionDict)
         else:
