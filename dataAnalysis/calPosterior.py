@@ -326,8 +326,8 @@ if __name__ == '__main__':
     # plt.errorbar(xnew, statsList[i], yerr=stdList[i], label=lables[i])
 
  # sig area line
-    for sigLine in [xnewSig[0], xnewSig[-1]]:
-        plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
+    # for sigLine in [xnewSig[0], xnewSig[-1]]:
+        # plt.plot([sigLine] * 10, np.linspace(0.5, 1., 10), color='black', linewidth=2, linestyle="--")
 
     # xlabels = ['firstIntentionStepRatio']
     # labels = participants

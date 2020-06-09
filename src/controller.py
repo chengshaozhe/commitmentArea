@@ -25,8 +25,8 @@ def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
 
 
 def calculateSoftmaxProbability(acionValues, beta):
-
-    expont = [min(700, i) for i in np.multiply(beta, acionValues)]
+    expont = np.multiply(beta, acionValues)
+    # expont = [min(700, i) for i in np.multiply(beta, acionValues)]
     newProbabilityList = list(np.divide(np.exp(expont), np.sum(np.exp(expont))))
 
     return newProbabilityList
@@ -43,6 +43,19 @@ class SoftmaxPolicy:
         softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
         softMaxActionDict = dict(zip(actionDict.keys(), softmaxProbabilityList))
         return softMaxActionDict
+
+
+class SampleSoftmaxAction:
+    def __init__(self, softmaxBeta):
+        self.softmaxBeta = softmaxBeta
+
+    def __call__(self, Q_dict, playerGrid):
+        actionDict = Q_dict[(playerGrid, target1)]
+        actionValues = list(actionDict.values())
+        softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
+        action = list(actionDict.keys())[
+            list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
+        return action
 
 
 class NormalNoise():
@@ -202,20 +215,34 @@ class ModelController():
         self.softmaxBeta = softmaxBeta
 
     def __call__(self, playerGrid, targetGrid1, targetGrid2):
-        try:
-            policyForCurrentStateDict = self.policy[(playerGrid, (targetGrid1, targetGrid2))]
-        except KeyError as e:
-            policyForCurrentStateDict = self.policy[(playerGrid, (targetGrid2, targetGrid1))]
-        if self.softmaxBeta < 0:
-            actionMaxList = [action for action in policyForCurrentStateDict.keys() if
-                             policyForCurrentStateDict[action] == np.max(list(policyForCurrentStateDict.values()))]
-            action = random.choice(actionMaxList)
-        else:
 
-            actionValue = list(policyForCurrentStateDict.values())
-            softmaxProbabilityList = calculateSoftmaxProbability(actionValue, self.softmaxBeta)
-            action = list(policyForCurrentStateDict.keys())[
-                list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
+        actionProbs = self.policy(playerGrid, targetGrid1, targetGrid2).values()
+        actionKeys = self.policy(playerGrid, targetGrid1, targetGrid2).keys()
+        actionDict = dict(zip(actionKeys, actionProbs))
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = sampleAction(actionDict)
+
+        aimePlayerGrid = tuple(np.add(playerGrid, action))
+        # pg.time.delay(500)
+        return aimePlayerGrid, action
+
+
+class GoalModelController():
+    def __init__(self, policy, gridSize, softmaxBeta):
+        self.policy = policy
+        self.gridSize = gridSize
+        self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+        self.softmaxBeta = softmaxBeta
+
+    def __call__(self, playerGrid, targetGrid):
+        actionDict = self.policy(playerGrid, targetGrid)
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            action = sampleAction(actionDict)
+
         aimePlayerGrid = tuple(np.add(playerGrid, action))
         # pg.time.delay(500)
         return aimePlayerGrid, action
@@ -262,13 +289,26 @@ def goalCommit(intention, commitBeta):
     return commitedIntention
 
 
-class SoftmaxPolicy:
+class SoftmaxGoalPolicy:
     def __init__(self, Q_dict, softmaxBeta):
         self.Q_dict = Q_dict
         self.softmaxBeta = softmaxBeta
 
     def __call__(self, playerGrid, target1):
         actionDict = self.Q_dict[(playerGrid, target1)]
+        actionValues = list(actionDict.values())
+        softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
+        softMaxActionDict = dict(zip(actionDict.keys(), softmaxProbabilityList))
+        return softMaxActionDict
+
+
+class SoftmaxRLPolicy:
+    def __init__(self, Q_dict, softmaxBeta):
+        self.Q_dict = Q_dict
+        self.softmaxBeta = softmaxBeta
+
+    def __call__(self, playerGrid, target1, target2):
+        actionDict = self.Q_dict[(playerGrid, tuple(sorted((target1, target2))))]
         actionValues = list(actionDict.values())
         softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
         softMaxActionDict = dict(zip(actionDict.keys(), softmaxProbabilityList))

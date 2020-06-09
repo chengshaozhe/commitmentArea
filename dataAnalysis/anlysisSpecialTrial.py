@@ -76,7 +76,7 @@ if __name__ == '__main__':
         statDF = pd.DataFrame()
         statDF['afterNoiseIntentionConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsis"].mean()
         statDF['afterNoiseIntentionConsisDelay'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsisDelay"].mean()
-        statDF['afterNoiseIntentionInConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionInConsis"].mean()
+        # statDF['afterNoiseIntentionInConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionInConsis"].mean()
 
         # statDF['afterNoiseFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
 
@@ -92,20 +92,23 @@ if __name__ == '__main__':
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
         print(statsList)
 
-    xlabels = ['consisInLeastSteps', 'consisWithDelaySteps', 'inconsistency']
+    xlabels = ['consisInLeastSteps', 'consisWithDelaySteps']
     # lables = participants
     lables = ['Human', 'RL Agent']
 
-    x = np.arange(len(xlabels))
+    # x = np.arange(len(xlabels))
     totalWidth, n = 0.8, len(xlabels)
     width = totalWidth / n
-    x = x - (totalWidth - width) / 3
+    # x = x - (totalWidth - width) / 3
 
-    for i in range(len(statsList)):
-        plt.bar(x + width * i, statsList[i], yerr=stdList[i], width=width, label=lables[i])
-    plt.xticks(x, xlabels)
+    ind = np.arange(len(lables))
+    p1 = plt.bar(ind, statsList[0], width, yerr=stdList[0])
+    p2 = plt.bar(ind, statsList[1], width, bottom=statsList[0], yerr=stdList[1])
+
+    plt.xticks(ind, lables)
+    plt.legend((p1[0], p2[0]), xlabels)
 
     plt.ylim((0, 1))
-    plt.legend(loc='best')
-    plt.title('special trial intention consistency')  # Intention Consistency
+    # plt.legend(loc='best')
+    plt.title('Special Trial Intention Consistency')  # Intention Consistency
     plt.show()

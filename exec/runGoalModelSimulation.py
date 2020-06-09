@@ -13,11 +13,11 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
-from src.simulationTrial import NormalTrial, SpecialTrial, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
-from src.experiment import Experiment
+from src.controller import SampleSoftmaxAction, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
+from src.simulationTrial import NormalTrialOnline, SpecialTrialOnline, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
+from src.experiment import ModelExperiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
-from machinePolicy.onlineVI import runVI
+from machinePolicy.valueIteration import RunVI
 
 
 def main():
@@ -78,13 +78,13 @@ def main():
 
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
     # policy = None
-
+    actionSpace = ((1, 0), (0, 1), (-1, 0), (0, -1))
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    goal_Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+    # goal_Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
 
     initPrior = [0.5, 0.5]
 
@@ -97,8 +97,9 @@ def main():
     rewardVarianceList = [50]
     softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
     print(softmaxBetaList)
+    softmaxBetaList = [-1, 1, 2]
     for softmaxBeta in softmaxBetaList:
-        policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
+        # policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
         for i in range(33):
             print(i)
@@ -126,27 +127,17 @@ def main():
     # deubg
             # conditionList = [expCondition] * 27
             # noiseDesignValues = ['special'] * 27
-    # debug
-            modelController = ModelController(policy, gridSize, softmaxBeta)
-            # modelController = ModelControllerWithGoal(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
 
-            # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
-            controller = modelController
-
-            normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
-            specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
-
-            # inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
-            # normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
-            # specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
-
-            # normalTrial = NormalTrialRewardOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, rewardVariance)
-            # specialTrial = SpecialTrialRewardOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, rewardVariance)
+    # model simulation
+            noise = 0.1
+            gamma = 0.99
+            goalReward = 10
+            runModel = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
+            sampleAction = SampleSoftmaxAction(softmaxBeta)
+            normalTrial = NormalTrialOnline(sampleAction, drawNewState, drawText, normalNoise, checkBoundary)
+            specialTrial = SpecialTrialOnline(sampleAction, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
             experimentValues = co.OrderedDict()
-            # experimentValues["name"] = "commitBeta" + str(commitBeta) + '_' + str(i)
-            # resultsDirPath = os.path.join(resultsPath, "commitBeta" + str(commitBeta))
-
             experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i)
             resultsDirPath = os.path.join(resultsPath, "softmaxBeta" + str(softmaxBeta))
 
@@ -154,7 +145,8 @@ def main():
                 os.makedirs(resultsDirPath)
             writerPath = os.path.join(resultsDirPath, experimentValues["name"] + '.csv')
             writer = WriteDataFrameToCSV(writerPath)
-            experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
+
+            experiment = ModelExperiment(runModel, sampleAction, normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
             experiment(noiseDesignValues, conditionList)
 
 
