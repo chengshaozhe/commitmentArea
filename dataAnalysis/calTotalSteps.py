@@ -15,9 +15,9 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
-
-    softmaxBetaStr = ['softmaxBeta' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+    # softmaxBetaList = np.round(np.arange(0.42, 0.5, 0.01), decimals=2)
+    softmaxBetaList = [5]
+    softmaxBetaStr = ['softmaxBetaGoal' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
 
     participants = ['human'] + softmaxBetaStr
     for participant in participants:

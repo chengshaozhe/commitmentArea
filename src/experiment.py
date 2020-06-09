@@ -46,8 +46,8 @@ class ModelExperiment():
     def __call__(self, noiseDesignValues, conditionList):
         for trialIndex, condition in enumerate(conditionList):
             playerGrid, bean1Grid, bean2Grid, chooseConditionDF = self.samplePositionFromCondition(condition)
-            model = self.runModel([bean1Grid, bean2Grid])
-
+            goals = tuple((bean1Grid, bean2Grid))
+            model = self.runModel(goals)
             if isinstance(noiseDesignValues[trialIndex], int):
                 results = self.normalTrial(model, bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
             else:

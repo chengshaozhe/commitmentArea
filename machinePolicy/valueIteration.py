@@ -291,7 +291,7 @@ def dict_to_array(V):
     return I
 
 
-def V_dict_to_array(V):
+def V_dict_to_array(V,S):
     V_lst = [V.get(s) for s in S]
     V_arr = np.asarray(V_lst)
     return V_arr
@@ -343,7 +343,7 @@ class RunVI:
         self.gamma = gamma
         self.goalReward = goalReward
 
-    def __call__(goalStates):
+    def __call__(self,goalStates):
         gridSize, A,noiseSpace,noise,gamma,goalReward = self.gridSize,self.actionSpace,self.noiseSpace, self.noise, self.gamma,self.goalReward
 
         env = GridWorld("test", nx=gridSize, ny=gridSize)
@@ -372,7 +372,6 @@ class RunVI:
 
         valueIteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100, terminals=goalStates)
         V = valueIteration(S, A, T, R)
-
         V_arr = V_dict_to_array(V, S)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
         Q_dict = {(s, goalStates): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
@@ -453,7 +452,7 @@ if __name__ == '__main__':
         V.update(terminalValue)
         # print(V)
 
-        V_arr = V_dict_to_array(V)
+        V_arr = V_dict_to_array(V,S)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
         Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
         # print (Q_dict)

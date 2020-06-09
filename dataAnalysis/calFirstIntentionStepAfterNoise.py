@@ -53,16 +53,17 @@ if __name__ == '__main__':
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
-    participants = ['human', 'softmaxBeta0.5']
+    participants = ['human', 'softmaxBetaGoal5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
-        # df.to_csv("all.csv")
+        df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())
         print('participant', participant, nubOfSubj)
         dfSpecialTrail = df[df['noiseNumber'] == 'special']
 
+        # dfSpecialTrail = df
         # dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
 
         dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
@@ -82,7 +83,7 @@ if __name__ == '__main__':
 
         # statDF.to_csv("statDF.csv")
 
-        print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
+        # print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
         # print('afterNoiseFirstIntentionStep', np.mean(statDF['afterNoiseFirstIntentionStep']))
 
         print('')

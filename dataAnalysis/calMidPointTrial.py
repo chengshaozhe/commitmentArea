@@ -125,7 +125,11 @@ if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
     # Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+<<<<<<< HEAD
+    softmaxBeta = 0.44
+=======
     softmaxBeta = 0.5
+>>>>>>> d7c75e6313bf245c20c349803ebf5d2dffddc624
     softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     # basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
     initPrior = [0.5, 0.5]

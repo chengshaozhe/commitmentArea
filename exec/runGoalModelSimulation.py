@@ -76,9 +76,9 @@ def main():
     midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
     # policy = None
-    actionSpace = ((1, 0), (0, 1), (-1, 0), (0, -1))
+    actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
@@ -96,8 +96,9 @@ def main():
 
     rewardVarianceList = [50]
     softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
+    softmaxBetaList = [5]
     print(softmaxBetaList)
-    softmaxBetaList = [-1, 1, 2]
+
     for softmaxBeta in softmaxBetaList:
         # policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
@@ -125,8 +126,8 @@ def main():
             noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
     # deubg
-            # conditionList = [expCondition] * 27
-            # noiseDesignValues = ['special'] * 27
+            conditionList = [expCondition] * 27
+            noiseDesignValues = ['special'] * 27
 
     # model simulation
             noise = 0.1
@@ -138,15 +139,15 @@ def main():
             specialTrial = SpecialTrialOnline(sampleAction, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
             experimentValues = co.OrderedDict()
-            experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i)
-            resultsDirPath = os.path.join(resultsPath, "softmaxBeta" + str(softmaxBeta))
+            experimentValues["name"] = "softmaxBetaGoal" + str(softmaxBeta) + '_' + str(i)
+            resultsDirPath = os.path.join(resultsPath, "softmaxBetaGoal" + str(softmaxBeta))
 
             if not os.path.exists(resultsDirPath):
                 os.makedirs(resultsDirPath)
             writerPath = os.path.join(resultsDirPath, experimentValues["name"] + '.csv')
             writer = WriteDataFrameToCSV(writerPath)
 
-            experiment = ModelExperiment(runModel, sampleAction, normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
+            experiment = ModelExperiment(runModel, normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
             experiment(noiseDesignValues, conditionList)
 
 

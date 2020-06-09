@@ -95,12 +95,13 @@ def main():
     commitBetaList = np.arange(1, 10, 1)
 
     rewardVarianceList = [50]
-    softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
-    print(softmaxBetaList)
+    # softmaxBetaList = np.round(np.arange(0.3, 1.1, 0.1), decimals=2)
+    # print(softmaxBetaList)
+    softmaxBetaList = [0.41]
     for softmaxBeta in softmaxBetaList:
         policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
-        for i in range(33):
+        for i in range(100):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
