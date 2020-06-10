@@ -97,11 +97,11 @@ def main():
     rewardVarianceList = [50]
     # softmaxBetaList = np.round(np.arange(0.3, 1.1, 0.1), decimals=2)
     # print(softmaxBetaList)
-    softmaxBetaList = [0.5, 1, 2.5]
+    softmaxBetaList = [-1]
     for softmaxBeta in softmaxBetaList:
-        policy = SoftmaxRLPolicy(goal_Q_dict, softmaxBeta)
+        # goalPolicy = SoftmaxGoalPolicy(goal_Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
-        for i in range(33):
+        for i in range(100):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -129,7 +129,7 @@ def main():
             # noiseDesignValues = ['special'] * 27
     # debug
             # modelController = ModelController(policy, gridSize, softmaxBeta)
-            modelController = GoalModelController(gridSize, softmaxBeta, goalPolicy, Q_dict, commitBeta)
+            modelController = GoalModelController(goal_Q_dict, gridSize, softmaxBeta)
 
             # modelController = ModelControllerOnlineReward(gridSize, softmaxBeta, runVI)
             controller = modelController
@@ -151,7 +151,7 @@ def main():
             # resultsDirPath = os.path.join(resultsPath, "commitBeta" + str(commitBeta))
 
             experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i)
-            resultsDirPath = os.path.join(resultsPath, "softmaxBeta" + str(softmaxBeta))
+            resultsDirPath = os.path.join(resultsPath, "earlyInentionSoftmaxBeta" + str(softmaxBeta))
 
             if not os.path.exists(resultsDirPath):
                 os.makedirs(resultsDirPath)
