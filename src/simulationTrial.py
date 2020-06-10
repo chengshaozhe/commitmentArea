@@ -359,9 +359,12 @@ class SpecialTrialOnline():
             goalList.append(goal)
             stepCount = stepCount + 1
 
-            if len(trajectory) > 1:
+            if len(trajectory) > 2:
                 noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(realPlayerGrid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
-                # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoiseNoLine(realPlayerGrid,bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
+
+                # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoiseNoLine(realPlayerGrid, bean1Grid, bean2Grid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
+
+                # noisePlayerGrid, noiseStep, firstIntentionFlag = self.backToZoneNoise(playerGrid, trajectory, avoidCommitmentZone, noiseStep, firstIntentionFlag)
 
                 if noisePlayerGrid:
                     realPlayerGrid = self.checkBoundary(noisePlayerGrid)

@@ -77,12 +77,16 @@ class SampleSoftmaxAction:
         self.softmaxBeta = softmaxBeta
 
     def __call__(self, Q_dict, playerGrid):
+        actionDict = Q_dict[playerGrid]
         actionKeys = list(Q_dict[playerGrid].keys())
         actionValues = list(Q_dict[playerGrid].values())
 
-        softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
-        action = actionKeys[
-            list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
+        if self.softmaxBeta < 0:
+            action = chooseMaxAcion(actionDict)
+        else:
+            softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
+            action = actionKeys[
+                list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
         return action
 
 
@@ -257,18 +261,18 @@ class ModelController():
 
 
 class GoalModelController():
-    def __init__(self, policy, gridSize, softmaxBeta):
-        self.policy = policy
+    def __init__(self, goal_Q_dict, gridSize, softmaxBeta):
+        self.goal_Q_dict = goal_Q_dict
         self.gridSize = gridSize
         self.actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
         self.softmaxBeta = softmaxBeta
 
-    def __call__(self, playerGrid, goal):
-        actionDict = self.policy(playerGrid, goal)
+    def __call__(self, playerGrid, targetGrid):
+        actionDict = self.goal_Q_dict[playerGrid, targetGrid]
         if self.softmaxBeta < 0:
             action = chooseMaxAcion(actionDict)
         else:
-            action = sampleAction(actionDict)
+            action = chooseSoftMaxAction(actionDict, self.softmaxBeta)
 
         aimePlayerGrid = tuple(np.add(playerGrid, action))
         # pg.time.delay(500)

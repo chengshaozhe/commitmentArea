@@ -53,24 +53,28 @@ if __name__ == '__main__':
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
-    participants = ['human', 'softmaxBetaGoal5']
+    participants = ['human', 'softmaxBetaGoal9']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
-        df.to_csv("all.csv")
+        # df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())
         print('participant', participant, nubOfSubj)
+
+        df = df[df['noisePoint'] != '[]']
         dfSpecialTrail = df[df['noiseNumber'] == 'special']
+        # print(dfSpecialTrail)
+        # dfSpecialTrail.to_csv("test.csv")
 
         # dfSpecialTrail = df
         # dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
 
-        dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
+        dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['trajectory']), int(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
 
-        dfSpecialTrail["afterNoiseIntentionInConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionInConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
+        dfSpecialTrail["afterNoiseIntentionInConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionInConsistAfterNoise(int(x['noisePoint']), eval(x['goal'])), axis=1)
 
-        dfSpecialTrail["afterNoiseIntentionConsisDelay"] = dfSpecialTrail.apply(lambda x: calFirstIntentionDelayConsistAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
+        dfSpecialTrail["afterNoiseIntentionConsisDelay"] = dfSpecialTrail.apply(lambda x: calFirstIntentionDelayConsistAfterNoise(eval(x['trajectory']), int(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
 
         # dfSpecialTrail["afterNoiseFirstIntentionStep"] = dfSpecialTrail.apply(lambda x: calFirstIntentionStepRationAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
 

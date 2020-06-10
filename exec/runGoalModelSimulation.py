@@ -96,13 +96,14 @@ def main():
 
     rewardVarianceList = [50]
     softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
-    softmaxBetaList = [5]
+
+    softmaxBetaList = [3, 5, 7, 9]
     print(softmaxBetaList)
 
     for softmaxBeta in softmaxBetaList:
         # policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
-        for i in range(33):
+        for i in range(30):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -126,12 +127,12 @@ def main():
             noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
     # deubg
-            conditionList = [expCondition] * 27
-            noiseDesignValues = ['special'] * 27
+            # conditionList = [expCondition] * 27
+            # noiseDesignValues = ['special'] * 27
 
     # model simulation
             noise = 0.1
-            gamma = 0.99
+            gamma = 0.9
             goalReward = 10
             runModel = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
             sampleAction = SampleSoftmaxAction(softmaxBeta)
