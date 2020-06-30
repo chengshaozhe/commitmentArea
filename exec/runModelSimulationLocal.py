@@ -84,7 +84,7 @@ def main():
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    goal_Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+    goal_Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "numGoal1noise0.1commitAreaGird15reward10_policy.pkl"), "rb"))
 
     initPrior = [0.5, 0.5]
 
@@ -97,7 +97,7 @@ def main():
     rewardVarianceList = [50]
     # softmaxBetaList = np.round(np.arange(0.3, 1.1, 0.1), decimals=2)
     # print(softmaxBetaList)
-    softmaxBetaList = [-1]
+    softmaxBetaList = [-1,3,5,7,9]
     for softmaxBeta in softmaxBetaList:
         # goalPolicy = SoftmaxGoalPolicy(goal_Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
