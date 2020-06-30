@@ -53,7 +53,7 @@ if __name__ == '__main__':
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
-    participants = ['human', 'softmaxBetaGoal9']
+    participants = ['human', 'softmaxBetaGoal5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)

@@ -51,9 +51,10 @@ if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
+    statData = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
-    participants = ['human', 'softmaxBetaGoal7']
+    participants = ['human', 'softmaxBetaGoal5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -61,6 +62,8 @@ if __name__ == '__main__':
         # df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())
         print('participant', participant, nubOfSubj)
+
+        df = df[df['noisePoint'] != '[]']
         dfSpecialTrail = df[df['noiseNumber'] == 'special']
 
         # dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
@@ -76,13 +79,13 @@ if __name__ == '__main__':
         statDF = pd.DataFrame()
         statDF['afterNoiseIntentionConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsis"].mean()
         statDF['afterNoiseIntentionConsisDelay'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsisDelay"].mean()
-        # statDF['afterNoiseIntentionInConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionInConsis"].mean()
+        statDF['afterNoiseIntentionInConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionInConsis"].mean()
 
-        # statDF['afterNoiseFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
+        # statDF['afterNoiseqFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
 
         # statDF.to_csv("statDF.csv")
 
-        print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
+        # print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
         # print('afterNoiseFirstIntentionStep', np.mean(statDF['afterNoiseFirstIntentionStep']))
 
         print('')
@@ -91,6 +94,10 @@ if __name__ == '__main__':
         statsList.append([np.mean(statDF[stat]) for stat in stats])
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
         print(statsList)
+
+        statData.append(statDF['afterNoiseIntentionConsis'])
+
+    print(ttest_ind(statData[0], statData[1]))
 
     xlabels = ['consisInLeastSteps', 'consisWithDelaySteps']
     # lables = participants
@@ -104,8 +111,9 @@ if __name__ == '__main__':
     ind = np.arange(len(lables))
     consisInLeastSteps = [statsList[0][0], statsList[1][0]]
     consisWithDelaySteps = [statsList[0][1], statsList[1][1]]
-    p1 = plt.bar(ind, consisInLeastSteps, width, yerr=stdList[0])
-    p2 = plt.bar(ind, consisWithDelaySteps, width, bottom=consisInLeastSteps, yerr=stdList[1])
+
+    p1 = plt.bar(ind, consisInLeastSteps, width, yerr=[stdList[0][0], stdList[1][0]])
+    p2 = plt.bar(ind, consisWithDelaySteps, width, bottom=consisInLeastSteps, yerr=[stdList[0][1], stdList[1][1]])
 
     plt.xticks(ind, lables)
     plt.legend((p1[0], p2[0]), xlabels)

@@ -229,11 +229,11 @@ if __name__ == '__main__':
     commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
     # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
-    participants = ['human', 'softmaxBetaGoal3']
+    participants = ['human', 'softmaxBetaRL5']
 
     for participant in participants:
 
-        softmaxBeta = 3
+        softmaxBeta = 5
         softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
         goalInfernce = GoalInfernce(initPrior, softmaxPolicy)
 
@@ -254,11 +254,11 @@ if __name__ == '__main__':
         # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        # dfExpTrail = df[(df['areaType'] == 'rect')]
+        dfExpTrail = df[(df['areaType'] == 'rect')]
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
 
-        dfExpTrail = df
+        # dfExpTrail = df
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] != 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['noiseNumber'] != 'special')]
