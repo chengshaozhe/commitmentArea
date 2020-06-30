@@ -11,9 +11,18 @@ from scipy.stats import ttest_ind
 from dataAnalysis import calculateSE
 
 
-def calculateSoftmaxProbability(acionValues, beta):
-    newProbabilityList = list(np.divide(np.exp(np.multiply(beta, acionValues)), np.sum(np.exp(np.multiply(beta, acionValues)))))
-    return newProbabilityList
+def calculateSoftmaxProbability(x, beta):
+    x = np.multiply(x, beta)
+    max_x = np.max(x)
+    exp_x = np.exp(x - max_x)
+    sum_exp_x = np.sum(exp_x)
+    sm_x = exp_x / sum_exp_x
+    return sm_x
+
+
+# def calculateSoftmaxProbability(acionValues, beta):
+#     newProbabilityList = list(np.divide(np.exp(np.multiply(beta, acionValues)), np.sum(np.exp(np.multiply(beta, acionValues)))))
+#     return newProbabilityList
 
 
 class SoftmaxPolicy:
@@ -67,10 +76,12 @@ class CalFirstIntentionStepRatio:
         firstIntentionStep = self.calFirstIntentionStep(goalPosteriorList)
         firstIntentionStepRatio = firstIntentionStep / len(goalPosteriorList)
         return firstIntentionStepRatio
+
+
 def calculateTimeGap(timeList):
-    time0=[timeList[0]-1300]
+    time0 = [timeList[0] - 1300]
     timeGap = [timeList[i + 1] - timeList[i] for i in range(len(timeList) - 1)]
-    return time0+timeGap
+    return time0 + timeGap
 
 
 def calculateIsTimeMaxNextNoisePoint(timeList, noisePoint):
@@ -83,10 +94,15 @@ def calculateIsTimeMaxNextNoisePoint(timeList, noisePoint):
         isTimeMaxNextNoisePoint = 0
     return isTimeMaxNextNoisePoint
 
-def calculateMeanTimeBeforeIntension(timeList,firstIntension):
+
+def calculateMeanTimeBeforeIntension(timeList, firstIntension):
     return np.mean(timeList[1:firstIntension])
-def calculateMeanTimeAfterIntension(timeList,firstIntension):
-    return np.mean(timeList[firstIntension+1:])    
+
+
+def calculateMeanTimeAfterIntension(timeList, firstIntension):
+    return np.mean(timeList[firstIntension + 1:])
+
+
 if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
     Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
@@ -132,18 +148,17 @@ if __name__ == '__main__':
 
         df['firstIntentionStep'] = df.apply(lambda x: calFirstIntentionStep(x['goalPosteriorList']), axis=1)
 
-          
         df["timeGap"] = df.apply(lambda x: calculateTimeGap(eval(x['reactionTime'])), axis=1)
         df["stepNum"] = df.apply(lambda x: len(eval(x['trajectory'])), axis=1)
-        df['meanTimeBeforeIntention']=df.apply(lambda x: calculateMeanTimeBeforeIntension(x['timeGap'],x['firstIntentionStep']), axis=1)
-        df['meanTimeAfterIntention']=df.apply(lambda x: calculateMeanTimeAfterIntension(x['timeGap'],x['firstIntentionStep']), axis=1)
-        df['meanTimeStep0']=df.apply(lambda x: x['timeGap'][0], axis=1)
+        df['meanTimeBeforeIntention'] = df.apply(lambda x: calculateMeanTimeBeforeIntension(x['timeGap'], x['firstIntentionStep']), axis=1)
+        df['meanTimeAfterIntention'] = df.apply(lambda x: calculateMeanTimeAfterIntension(x['timeGap'], x['firstIntentionStep']), axis=1)
+        df['meanTimeStep0'] = df.apply(lambda x: x['timeGap'][0], axis=1)
 
         # df.to_csv("humanResultReationTime(withStep0).csv")
         dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        dfExpTrail['RT1/3']=dfExpTrail.apply(lambda x: calculateMeanTimeBeforeIntension(x['timeGap'],x['noisePoint']), axis=1)
-        dfExpTrail['RT2/3']=df.apply(lambda x: calculateMeanTimeAfterIntension(x['timeGap'],x['noisePoint']), axis=1)
-        # dfExpTrail['RT3/3']=  
+        dfExpTrail['RT1/3'] = dfExpTrail.apply(lambda x: calculateMeanTimeBeforeIntension(x['timeGap'], x['noisePoint']), axis=1)
+        dfExpTrail['RT2/3'] = df.apply(lambda x: calculateMeanTimeAfterIntension(x['timeGap'], x['noisePoint']), axis=1)
+        # dfExpTrail['RT3/3']=
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] != 'none')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'midLine')]
         # dfExpTrail = df[(df['distanceDiff'] == 0) & (df['areaType'] == 'straightLine')]
@@ -170,7 +185,7 @@ if __name__ == '__main__':
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
 
     # xlabels = ['meanTimeBeforeIntention','meanTimeAfterIntention']
-    xlabels=['meanTimeStep0','meanTimeBeforeIntention','meanTimeAfterIntention']
+    xlabels = ['meanTimeStep0', 'meanTimeBeforeIntention', 'meanTimeAfterIntention']
     labels = participants
     x = np.arange(len(xlabels))
     totalWidth, n = 0.5, len(participants)

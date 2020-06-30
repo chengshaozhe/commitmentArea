@@ -13,7 +13,7 @@ import pandas as pd
 import seaborn as sns
 
 # from viz import *
-# from reward import *
+from reward import *
 
 
 class GridWorld():
@@ -291,7 +291,7 @@ def dict_to_array(V):
     return I
 
 
-def V_dict_to_array(V,S):
+def V_dict_to_array(V):
     V_lst = [V.get(s) for s in S]
     V_arr = np.asarray(V_lst)
     return V_arr
@@ -343,7 +343,7 @@ class RunVI:
         self.gamma = gamma
         self.goalReward = goalReward
 
-    def __call__(self,goalStates):
+    def __call__(goalStates):
         gridSize, A,noiseSpace,noise,gamma,goalReward = self.gridSize,self.actionSpace,self.noiseSpace, self.noise, self.gamma,self.goalReward
 
         env = GridWorld("test", nx=gridSize, ny=gridSize)
@@ -372,6 +372,7 @@ class RunVI:
 
         valueIteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100, terminals=goalStates)
         V = valueIteration(S, A, T, R)
+
         V_arr = V_dict_to_array(V, S)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
         Q_dict = {(s, goalStates): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
@@ -446,13 +447,13 @@ if __name__ == '__main__':
         R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
                              for a in A] for s in S])
 
-        gamma = 0.9
+        gamma = 0.99
         value_iteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100,terminals=sheep_states)
         V = value_iteration(S, A, T, R)
         V.update(terminalValue)
         # print(V)
 
-        V_arr = V_dict_to_array(V,S)
+        V_arr = V_dict_to_array(V)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
         Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
         # print (Q_dict)

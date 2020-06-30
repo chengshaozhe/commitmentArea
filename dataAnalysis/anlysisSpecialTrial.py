@@ -22,6 +22,7 @@ def isGridsALine(playerGrid, bean1Grid, bean2Grid):
 
 def calFirstIntentionConsistAfterNoise(trajectory, noisePoints, target1, target2, goalList):
     trajectory = list(map(tuple, trajectory))
+
     afterNoiseGrid = trajectory[noisePoints]
     if isGridsALine(afterNoiseGrid, target1, target2):
         afterNoiseIntentionConsis = 1 if goalList[noisePoints] == calculateFirstIntention(goalList) else 0
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     stdList = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
-    participants = ['human', 'softmaxBeta2.5']
+    participants = ['human', 'softmaxBeta0.5']
 
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
@@ -61,6 +62,8 @@ if __name__ == '__main__':
         # df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())
         print('participant', participant, nubOfSubj)
+
+        df = df[df['noisePoint'] != "[]"]
         dfSpecialTrail = df[df['noiseNumber'] == 'special']
 
         # dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
@@ -92,7 +95,7 @@ if __name__ == '__main__':
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
         print(statsList)
 
-    xlabels = ['consisInLeastSteps', 'consisWithDelaySteps']
+    xlabels = ['Commit to Intention with Least Actions', 'Commit to Intention with Delay Actions']
     # lables = participants
     lables = ['Human', 'RL Agent']
 
@@ -102,8 +105,12 @@ if __name__ == '__main__':
     # x = x - (totalWidth - width) / 3
 
     ind = np.arange(len(lables))
-    p1 = plt.bar(ind, statsList[0], width, yerr=stdList[0])
-    p2 = plt.bar(ind, statsList[1], width, bottom=statsList[0], yerr=stdList[1])
+
+    consisInLeastSteps = [statsList[0][0], statsList[1][0]]
+    consisWithDelaySteps = [statsList[0][1], statsList[1][1]]
+
+    p1 = plt.bar(ind, consisInLeastSteps, width, yerr=[stdList[0][0], stdList[1][0]])
+    p2 = plt.bar(ind, consisWithDelaySteps, width, bottom=consisInLeastSteps, yerr=[stdList[0][1], stdList[1][1]])
 
     plt.xticks(ind, lables)
     plt.legend((p1[0], p2[0]), xlabels)
@@ -114,5 +121,5 @@ if __name__ == '__main__':
 
     plt.ylim((0, 1))
     # plt.legend(loc='best')
-    plt.title('Special Trial Intention Consistency', fontsize=fontSize, color='black')  # Intention Consistency
+    plt.title('Intention Consistency', fontsize=fontSize, color='black')  # Intention Consistency
     plt.show()
