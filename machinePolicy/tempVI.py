@@ -374,14 +374,14 @@ class RunVI:
         V = valueIteration(S, A, T, R)
         V_arr = V_dict_to_array(V, S)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
-        Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        Q_dict = {(s, goalStates): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
 
         return Q_dict
 
 
 if __name__ == '__main__':
     gridSize = 15
-    numSheeps = 2
+    numSheeps = 1
     sheep_state = tuple(it.product(range(gridSize), range(gridSize)))
     sheep_states_all = list(it.combinations(sheep_state, numSheeps))
     Q_merge = {}
@@ -394,6 +394,7 @@ if __name__ == '__main__':
         # sheep_states = ((7, 3), (3, 7))
 
         # sheep_states = ((4, 2), (2, 4))
+
         print(sheep_states)
         print("progress: {0}/{1} ".format(t, len(sheep_states_all)))
 
@@ -457,7 +458,7 @@ if __name__ == '__main__':
         Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
         # print (Q_dict)
 
-        Q_dict_output = {(s, sheep_states): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+        Q_dict_output = {(s, sheep_states[0]): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
         # print (Q_dict_output)
 
         # normlizedQ_dict = {}
