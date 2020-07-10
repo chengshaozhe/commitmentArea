@@ -592,12 +592,13 @@ class SpecialTrialRewardOnline():
 
 
 class NormalTrialWithEarlyIntention():
-    def __init__(self, controller, drawNewState, drawText, normalNoise, checkBoundary):
+    def __init__(self, controller, drawNewState, drawText, normalNoise, checkBoundary,renderOn):
         self.controller = controller
         self.drawNewState = drawNewState
         self.drawText = drawText
         self.normalNoise = normalNoise
         self.checkBoundary = checkBoundary
+        self.renderOn = renderOn
 
     def __call__(self, bean1Grid, bean2Grid, playerGrid, designValues):
         initialPlayerGrid = playerGrid
@@ -617,13 +618,15 @@ class NormalTrialWithEarlyIntention():
 
         goalState = chooseGoal(playerGrid, bean1Grid, bean2Grid)
         while pause:
+            if self.renderOn:
+                self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
+                pg.time.wait(500)
             aimPlayerGrid, aimAction = self.controller(realPlayerGrid, goalState)
             goal = inferGoal(trajectory[-1], aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)
             stepCount = stepCount + 1
             noisePlayerGrid, realAction = self.normalNoise(trajectory[-1], aimAction, noiseStep, stepCount)
             realPlayerGrid = self.checkBoundary(noisePlayerGrid)
-            # self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
             reactionTime.append(time.get_ticks() - initialTime)
             trajectory.append(list(realPlayerGrid))
             aimActionList.append(aimAction)

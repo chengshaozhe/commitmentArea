@@ -76,7 +76,7 @@ def main():
     midLineCondition = condition(name='MidLine', areaType='midLine', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=lineAreaSize, intentionedDisToTarget=intentionedDisToTargetList)
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
-    # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "numGoal2noise0.1commitAreaGird15reward10_policy.pkl"), "rb"))
     # policy = None
 
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
@@ -97,11 +97,11 @@ def main():
     rewardVarianceList = [50]
     # softmaxBetaList = np.round(np.arange(0.3, 1.1, 0.1), decimals=2)
     # print(softmaxBetaList)
-    softmaxBetaList = [-1,3,5,7,9]
+    softmaxBetaList = [8]
     for softmaxBeta in softmaxBetaList:
-        # goalPolicy = SoftmaxGoalPolicy(goal_Q_dict, softmaxBeta)
+        # policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
-        for i in range(100):
+        for i in range(50):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -136,9 +136,10 @@ def main():
 
             # normalTrial = NormalTrial(controller, drawNewState, drawText, normalNoise, checkBoundary)
             # specialTrial = SpecialTrial(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
-
-            normalTrial = NormalTrialWithEarlyIntention(controller, drawNewState, drawText, normalNoise, checkBoundary)
+            renderOn = 0
+            normalTrial = NormalTrialWithEarlyIntention(controller, drawNewState, drawText, normalNoise, checkBoundary,renderOn)
             specialTrial = SpecialTrialWithEarlyIntention(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+
             # inferGoalPosterior = InferGoalPosterior(goalPolicy, commitBeta)
             # normalTrial = NormalTrialWithGoal(controller, drawNewState, drawText, normalNoise, checkBoundary, initPrior, inferGoalPosterior)
             # specialTrial = SpecialTrialWithGoal(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, initPrior, inferGoalPosterior)
@@ -151,7 +152,7 @@ def main():
             # resultsDirPath = os.path.join(resultsPath, "commitBeta" + str(commitBeta))
 
             experimentValues["name"] = "softmaxBeta" + str(softmaxBeta) + '_' + str(i)
-            resultsDirPath = os.path.join(resultsPath, "earlyInentionSoftmaxBeta" + str(softmaxBeta))
+            resultsDirPath = os.path.join(resultsPath, "softmaxBetaEarly" + str(softmaxBeta))
 
             if not os.path.exists(resultsDirPath):
                 os.makedirs(resultsDirPath)

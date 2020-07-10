@@ -23,18 +23,23 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # softmaxBetaList = np.round(np.arange(0.42, 0.5, 0.01), decimals=2)
-    softmaxBetaList = [ 3, 5, 7, 9,-1]
-    softmaxBetaStr = ['earlyInentionSoftmaxBeta' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+    # softmaxBetaList = [5,6, 7,8, 9,-1]
+    # softmaxBetaStr = ['earlyInentionSoftmaxBeta' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+    softmaxBetaList = [5,6, 7,8, 9]
+    softmaxBetaStr = ['softmaxBetaRL' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
 
     participants = ['human'] + softmaxBetaStr
+
+    # participants = ['human','softmaxBetaEarly8']
+
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
 
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(eval(x['goal'])), axis=1)
-        # df['totalStep'] = df.apply(lambda x: len(eval(x['trajectory'])), axis=1)
+        df['totalStep'] = df.apply(lambda x: len(eval(x['trajectory'])), axis=1)
 
-        df['totalStep'] = df.apply(lambda x: calStepsAfterIntention(eval(x['trajectory']), x['firstIntentionStep']), axis=1)
+        # df['totalStep'] = df.apply(lambda x: calStepsAfterIntention(eval(x['trajectory']), x['firstIntentionStep']), axis=1)
 
         # df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())

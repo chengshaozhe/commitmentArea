@@ -226,14 +226,14 @@ if __name__ == '__main__':
     statDFList = []
 
     commitBetaList = np.arange(1, 10, 2)
-    commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
+    # commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
     # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
-    participants = ['human', 'earlyInentionSoftmaxBeta5']
+    participants = ['human', 'softmaxBetaEarly8','softmaxBetaRL6']
 
     for participant in participants:
 
-        softmaxBeta = 5
+        softmaxBeta = 6
         softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
         goalInfernce = GoalInfernce(initPrior, softmaxPolicy)
 
@@ -253,8 +253,8 @@ if __name__ == '__main__':
         df['goalPosterior'] = df.apply(lambda x: calPosterior(x['goalPosteriorList']), axis=1)
         # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
-        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        dfExpTrail = df[(df['areaType'] == 'rect')]
+        dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        # dfExpTrail = df[(df['areaType'] == 'rect')]
         # dfExpTrail = df[(df['areaType'] == 'rect') | (df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     # print(ranksums(statDFList[0], statDFList[1]))
 
     lables = participants
-    lables = ['Human', 'Early Intention Agent']
+    lables = ['Human', 'Early Intention Agent', 'RL Agent']
 
     xnew = np.linspace(0., 1., 30)
     xnewSig = xnew[sigArea]
