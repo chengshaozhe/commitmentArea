@@ -97,7 +97,7 @@ def main():
     rewardVarianceList = [50]
     softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
 
-    softmaxBetaList = [3, 5, 7, 9]
+    softmaxBetaList = [-1]
     print(softmaxBetaList)
 
     for softmaxBeta in softmaxBetaList:
@@ -140,8 +140,8 @@ def main():
             specialTrial = SpecialTrialOnline(sampleAction, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
 
             experimentValues = co.OrderedDict()
-            experimentValues["name"] = "softmaxBetaGoal" + str(softmaxBeta) + '_' + str(i)
-            resultsDirPath = os.path.join(resultsPath, "softmaxBetaGoal" + str(softmaxBeta))
+            experimentValues["name"] = "softmaxBetaRL" + str(softmaxBeta) + '_' + str(i)
+            resultsDirPath = os.path.join(resultsPath, "softmaxBetaRL" + str(softmaxBeta))
 
             if not os.path.exists(resultsDirPath):
                 os.makedirs(resultsDirPath)

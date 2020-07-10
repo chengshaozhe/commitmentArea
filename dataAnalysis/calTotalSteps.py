@@ -23,10 +23,10 @@ if __name__ == '__main__':
     statsList = []
     stdList = []
     # softmaxBetaList = np.round(np.arange(0.42, 0.5, 0.01), decimals=2)
-    # softmaxBetaList = [5,6, 7,8, 9,-1]
-    # softmaxBetaStr = ['earlyInentionSoftmaxBeta' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
-    softmaxBetaList = [5,6, 7,8, 9]
+
+    softmaxBetaList = [3, 5, 7, 9, -1]
     softmaxBetaStr = ['softmaxBetaRL' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+
 
     participants = ['human'] + softmaxBetaStr
 
@@ -55,8 +55,9 @@ if __name__ == '__main__':
         # dfExpTrail = df[(df['areaType'] != 'none')]
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['areaType'] != 'rect')]
 
+        dfExpTrail = df[df['noiseNumber'] != 'special']
+        # dfExpTrail = df
         # dfExpTrail = df[df['noiseNumber'] == 'special']
-        dfExpTrail = df
 
         statDF = pd.DataFrame()
         # statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()

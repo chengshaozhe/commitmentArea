@@ -255,7 +255,6 @@ if __name__ == '__main__':
 
         dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         # dfExpTrail = df[(df['areaType'] == 'rect')]
-        # dfExpTrail = df[(df['areaType'] == 'rect') | (df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
 
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
 
