@@ -11,13 +11,25 @@ from collections import Counter
 from dataAnalysis import calculateSE, calculateFirstIntentionStep
 
 
+def calStepsAfterIntention(trajectory, firstIntentionStep):
+
+    numSteps = len(trajectory[firstIntentionStep:])
+
+    return numSteps
+
+
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
     # softmaxBetaList = np.round(np.arange(0.42, 0.5, 0.01), decimals=2)
-    softmaxBetaList = [5]
-    softmaxBetaStr = ['softmaxBetaGoal' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+<<<<<<< HEAD
+    softmaxBetaList = [3, 5, 7, 9, -1]
+    softmaxBetaStr = ['softmaxBetaRL' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+=======
+    softmaxBetaList = [ 3, 5, 7, 9,-1]
+    softmaxBetaStr = ['earlyInentionSoftmaxBeta' + str(softmaxBeta) for softmaxBeta in softmaxBetaList]
+>>>>>>> bdaf2201b06f2ff99791da3661c9efb46a0c9393
 
     participants = ['human'] + softmaxBetaStr
     for participant in participants:
@@ -25,7 +37,9 @@ if __name__ == '__main__':
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
 
         df['firstIntentionStep'] = df.apply(lambda x: calculateFirstIntentionStep(eval(x['goal'])), axis=1)
-        df['totalStep'] = df.apply(lambda x: len(eval(x['trajectory'])), axis=1)
+        # df['totalStep'] = df.apply(lambda x: len(eval(x['trajectory'])), axis=1)
+
+        df['totalStep'] = df.apply(lambda x: calStepsAfterIntention(eval(x['trajectory']), x['firstIntentionStep']), axis=1)
 
         # df.to_csv("all.csv")
         nubOfSubj = len(df["name"].unique())
@@ -41,8 +55,13 @@ if __name__ == '__main__':
         # dfExpTrail = df[(df['areaType'] != 'none')]
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['areaType'] != 'rect')]
 
-        # dfExpTrail = df[df['noiseNumber'] != 'special']
+<<<<<<< HEAD
+        dfExpTrail = df[df['noiseNumber'] != 'special']
+        # dfExpTrail = df
+=======
+        # dfExpTrail = df[df['noiseNumber'] == 'special']
         dfExpTrail = df
+>>>>>>> bdaf2201b06f2ff99791da3661c9efb46a0c9393
 
         statDF = pd.DataFrame()
         # statDF['firstIntentionStep'] = dfExpTrail.groupby('name')["firstIntentionStep"].mean()

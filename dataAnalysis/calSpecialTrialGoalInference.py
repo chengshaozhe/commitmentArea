@@ -48,15 +48,36 @@ def calFirstIntentionStepRationAfterNoise(noisePoints, goalList):
     return afterNoiseFirstIntentionStep
 
 
+class CalLikehood:
+    def __init__(self, goalPolicy):
+        self.goalPolicy = goalPolicy
+
+    def __call__(self, trajectory, target1, target2, noisePoints, goalList):
+
+        playerGrid = trajectory[noisePoints]
+        targets = list([target1, target2])
+        originGoal = targets[calculateFirstIntention(goalList)]
+        noGoal = [target for target in targets if target != originGoal][0]
+
+        likelihoodGoal = self.goalPolicy(playerGrid, originGoal).get(action)
+        likelihoodNoGoal = self.goalPolicy(playerGrid, noGoal).get(action)
+
+        return [likelihoodGoal, likelihoodNoGoal]
+
+
 if __name__ == '__main__':
     resultsPath = os.path.join(os.path.join(DIRNAME, '..'), 'results')
     statsList = []
     stdList = []
-    statData = []
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
-    participants = ['human', 'softmaxBeta0.5']
+    machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+    softmaxBeta = 0.5
+    softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
+    calLikehood = CalLikehood(softmaxPolicy)
 
+    participants = ['human', 'softmaxBeta0.5']
     for participant in participants:
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
@@ -65,27 +86,28 @@ if __name__ == '__main__':
         print('participant', participant, nubOfSubj)
 
         df = df[df['noisePoint'] != "[]"]
+        dfSpecialTrail = df[df['noiseNumber'] == 'special']
 
         # dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
 
-        dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['trajectory']), int(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
+        dfSpecialTrail["afterNoiseIntentionConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionConsistAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
 
-        dfSpecialTrail["afterNoiseIntentionInConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionInConsistAfterNoise(int(x['noisePoint']), eval(x['goal'])), axis=1)
+        dfSpecialTrail["afterNoiseIntentionInConsis"] = dfSpecialTrail.apply(lambda x: calFirstIntentionInConsistAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
 
-        dfSpecialTrail["afterNoiseIntentionConsisDelay"] = dfSpecialTrail.apply(lambda x: calFirstIntentionDelayConsistAfterNoise(eval(x['trajectory']), int(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
+        dfSpecialTrail["afterNoiseIntentionConsisDelay"] = dfSpecialTrail.apply(lambda x: calFirstIntentionDelayConsistAfterNoise(eval(x['trajectory']), eval(x['noisePoint']), eval(x['target1']), eval(x['target2']), eval(x['goal'])), axis=1)
 
         # dfSpecialTrail["afterNoiseFirstIntentionStep"] = dfSpecialTrail.apply(lambda x: calFirstIntentionStepRationAfterNoise(eval(x['noisePoint']), eval(x['goal'])), axis=1)
 
         statDF = pd.DataFrame()
         statDF['afterNoiseIntentionConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsis"].mean()
         statDF['afterNoiseIntentionConsisDelay'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionConsisDelay"].mean()
-        statDF['afterNoiseIntentionInConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionInConsis"].mean()
+        # statDF['afterNoiseIntentionInConsis'] = dfSpecialTrail.groupby('name')["afterNoiseIntentionInConsis"].mean()
 
-        # statDF['afterNoiseqFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
+        # statDF['afterNoiseFirstIntentionStep'] = dfSpecialTrail.groupby('name')["afterNoiseFirstIntentionStep"].mean()
 
         # statDF.to_csv("statDF.csv")
 
-        # print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
+        print('afterNoiseIntentionConsis', np.mean(statDF['afterNoiseIntentionConsis']))
         # print('afterNoiseFirstIntentionStep', np.mean(statDF['afterNoiseFirstIntentionStep']))
 
         print('')
@@ -95,12 +117,7 @@ if __name__ == '__main__':
         stdList.append([calculateSE(statDF[stat]) for stat in stats])
         print(statsList)
 
-        statData.append(statDF['afterNoiseIntentionConsis'])
-
     xlabels = ['Commit to Intention with Least Actions', 'Commit to Intention with Delay Actions']
-
-    print(ttest_ind(statData[0], statData[1]))
-
     # lables = participants
     lables = ['Human', 'RL Agent']
 

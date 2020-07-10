@@ -186,15 +186,14 @@ class CalFirstIntentionStepRatio:
 
 if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "numGoal1noise0.1commitAreaGird15reward10gamma0.9_policy.pkl"), "rb"))
     # Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
 
-    softmaxBeta = 0.44
+    softmaxBeta = 0.5
     softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     # basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
     initPrior = [0.5, 0.5]
     inferThreshold = 0.95
-    goalInfernce = GoalInfernce(initPrior, softmaxPolicy)
     calFirstIntentionStep = CalFirstIntentionStep(inferThreshold)
     calFirstIntentionStepRatio = CalFirstIntentionStepRatio(calFirstIntentionStep)
     # calculateActionInformation = CalculateActionInformation(initPrior, softmaxPolicy, basePolicy)
@@ -232,9 +231,15 @@ if __name__ == '__main__':
     commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
     # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
-    participants = ['human', 'softmaxBeta0.44']
+
+    participants = ['human', 'softmaxBetaRL5', 'earlyInentionSoftmaxBeta7']
 
     for participant in participants:
+
+        softmaxBeta = 5
+        softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
+        goalInfernce = GoalInfernce(initPrior, softmaxPolicy)
+
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
         nubOfSubj = len(df["name"].unique())
@@ -254,6 +259,8 @@ if __name__ == '__main__':
         dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
         # dfExpTrail = df[(df['areaType'] == 'rect')]
 
+        # dfExpTrail = df[(df['areaType'] == 'rect') | (df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+
         # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
 
         # dfExpTrail = df
@@ -268,7 +275,7 @@ if __name__ == '__main__':
         # dfExpTrail = df[(df['areaType'] == 'straightLine') | (df['areaType'] == 'midLine') & (df['distanceDiff'] == 0)]
         # dfExpTrail = df[(df['areaType'] != 'none')]
 
-        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['areaType'] != 'rect')]
+        # dfExpTrail = df[(df['areaType'] == 'expRect') | (df['areaType'] == 'rect')]
 
         # dfExpTrail = df[df['noiseNumber'] != 'special']
         # dfExpTrail = df
@@ -316,7 +323,7 @@ if __name__ == '__main__':
     # print(ranksums(statDFList[0], statDFList[1]))
 
     lables = participants
-    lables = ['Human', 'RL Agent']
+    lables = ['Human', 'Early Intention Agent']
 
     xnew = np.linspace(0., 1., 30)
     xnewSig = xnew[sigArea]
