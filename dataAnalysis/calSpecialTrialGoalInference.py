@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import numpy as np
 from scipy.stats import ttest_ind
-
+import pickle
 from dataAnalysis import calculateFirstIntention, calculateSE, calculateFirstIntentionRatio, calculateFirstIntentionStep
 
 
@@ -72,13 +72,12 @@ if __name__ == '__main__':
     # participants = ['human', 'maxModelNoise0.1', 'softMaxBeta2.5ModelNoise0.1', 'softMaxBeta10Model', 'maxModelNoNoise']
 
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
-    softmaxBeta = 0.5
-    softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
-    calLikehood = CalLikehood(softmaxPolicy)
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "numGoal2noise0.1commitAreaGird15reward10_policy.pkl"), "rb"))
 
-    participants = ['human', 'softmaxBeta0.5']
+    participants = ['human', 'softmaxBetaRL9']
     for participant in participants:
+        softmaxBeta = 9
+
         dataPath = os.path.join(resultsPath, participant)
         df = pd.concat(map(pd.read_csv, glob.glob(os.path.join(dataPath, '*.csv'))), sort=False)
         # df.to_csv("all.csv")

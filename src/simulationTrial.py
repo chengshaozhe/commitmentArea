@@ -283,14 +283,15 @@ def rewardNoise(goalRewardList, variance):
 
 
 class NormalTrialOnline():
-    def __init__(self, sampleAction, drawNewState, drawText, normalNoise, checkBoundary):
-        self.sampleAction = sampleAction
+    def __init__(self, controller, drawNewState, drawText, normalNoise, checkBoundary, renderOn):
+        self.controller = controller
         self.drawNewState = drawNewState
         self.drawText = drawText
         self.normalNoise = normalNoise
         self.checkBoundary = checkBoundary
+        self.renderOn = renderOn
 
-    def __call__(self, model, bean1Grid, bean2Grid, playerGrid, designValues):
+    def __call__(self, Q_dict, bean1Grid, bean2Grid, playerGrid, designValues):
         initialPlayerGrid = playerGrid
         initialTime = time.get_ticks()
         reactionTime = list()
@@ -301,12 +302,15 @@ class NormalTrialOnline():
         noiseStep = random.sample(list(range(1, totalStep + 1)), designValues)
         stepCount = 0
         goalList = list()
-        # self.drawNewState(bean1Grid, bean2Grid, initialPlayerGrid)
 
         realPlayerGrid = initialPlayerGrid
         pause = True
         while pause:
-            aimAction = self.sampleAction(model, realPlayerGrid)
+            if self.renderOn:
+                self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
+
+            # aimAction = self.controller(Q_dict, realPlayerGrid)
+            aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
             aimPlayerGrid = tuple(np.add(realPlayerGrid, aimAction))
 
             goal = inferGoal(realPlayerGrid, aimPlayerGrid, bean1Grid, bean2Grid)
@@ -314,7 +318,6 @@ class NormalTrialOnline():
             stepCount = stepCount + 1
             noisePlayerGrid, realAction = self.normalNoise(realPlayerGrid, aimAction, noiseStep, stepCount)
             realPlayerGrid = self.checkBoundary(noisePlayerGrid)
-            # self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
             reactionTime.append(time.get_ticks() - initialTime)
             trajectory.append(list(realPlayerGrid))
             aimActionList.append(aimAction)
@@ -328,14 +331,15 @@ class NormalTrialOnline():
 
 
 class SpecialTrialOnline():
-    def __init__(self, sampleAction, drawNewState, drawText, backToZoneNoise, checkBoundary):
-        self.sampleAction = sampleAction
+    def __init__(self, controller, drawNewState, drawText, backToZoneNoise, checkBoundary, renderOn):
+        self.controller = controller
         self.drawNewState = drawNewState
         self.drawText = drawText
         self.backToZoneNoise = backToZoneNoise
         self.checkBoundary = checkBoundary
+        self.renderOn = renderOn
 
-    def __call__(self, model, bean1Grid, bean2Grid, playerGrid):
+    def __call__(self, Q_dict, bean1Grid, bean2Grid, playerGrid):
         initialPlayerGrid = playerGrid
         initialTime = time.get_ticks()
         reactionTime = list()
@@ -352,8 +356,11 @@ class SpecialTrialOnline():
         pause = True
         realPlayerGrid = initialPlayerGrid
         while pause:
-            aimAction = self.sampleAction(model, realPlayerGrid)
-            aimPlayerGrid = tuple(np.add(realPlayerGrid, aimAction))
+            if self.renderOn:
+                self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
+
+            # aimAction = self.controller(Q_dict, realPlayerGrid)
+            aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
 
             goal = inferGoal(realPlayerGrid, aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)
@@ -373,7 +380,6 @@ class SpecialTrialOnline():
             else:
                 realPlayerGrid = self.checkBoundary(aimPlayerGrid)
 
-            # self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
             reactionTime.append(time.get_ticks() - initialTime)
             trajectory.append(list(realPlayerGrid))
             aimActionList.append(aimAction)
@@ -592,12 +598,13 @@ class SpecialTrialRewardOnline():
 
 
 class NormalTrialWithEarlyIntention():
-    def __init__(self, controller, drawNewState, drawText, normalNoise, checkBoundary):
+    def __init__(self, controller, drawNewState, drawText, normalNoise, checkBoundary, renderOn):
         self.controller = controller
         self.drawNewState = drawNewState
         self.drawText = drawText
         self.normalNoise = normalNoise
         self.checkBoundary = checkBoundary
+        self.renderOn = renderOn
 
     def __call__(self, bean1Grid, bean2Grid, playerGrid, designValues):
         initialPlayerGrid = playerGrid
@@ -617,13 +624,15 @@ class NormalTrialWithEarlyIntention():
 
         goalState = chooseGoal(playerGrid, bean1Grid, bean2Grid)
         while pause:
+            if self.renderOn:
+                self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
+                pg.time.wait(500)
             aimPlayerGrid, aimAction = self.controller(realPlayerGrid, goalState)
             goal = inferGoal(trajectory[-1], aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)
             stepCount = stepCount + 1
             noisePlayerGrid, realAction = self.normalNoise(trajectory[-1], aimAction, noiseStep, stepCount)
             realPlayerGrid = self.checkBoundary(noisePlayerGrid)
-            # self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
             reactionTime.append(time.get_ticks() - initialTime)
             trajectory.append(list(realPlayerGrid))
             aimActionList.append(aimAction)

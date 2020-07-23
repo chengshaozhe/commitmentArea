@@ -209,7 +209,7 @@ def runVI(sheep_states, obstacles_states, goalRewardList):
     R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
                          for a in A] for s in S])
 
-    gamma = 0.9
+    gamma = 0.99
     value_iteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100, terminals=sheep_states, obstacles=obstacles_states)
     V = value_iteration(S, A, T, R)
 
@@ -237,7 +237,7 @@ if __name__ == '__main__':
     obstacles_states = ((2, 2), (2, 4), (2, 5), (2, 6), (4, 2), (5, 2), (6, 2))
     # obstacles_states = ((3, 3), (3, 5), (3, 5), (3, 7), (7, 3), (6, 3), (5, 3))
 
-    goalRewardList = [100, 100]
+    goalRewardList = [10, 10]
 
     Q_dict = runVI(sheep_states, obstacles_states, goalRewardList)
     print(Q_dict)

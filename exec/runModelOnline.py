@@ -13,7 +13,7 @@ import pandas as pd
 
 from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
-from src.controller import SampleSoftmaxAction, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
+from src.controller import AvoidCommitModel, SampleSoftmaxAction, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
 from src.simulationTrial import NormalTrialOnline, SpecialTrialOnline, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
 from src.experiment import ModelExperiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
@@ -77,19 +77,18 @@ def main():
     noAreaCondition = condition(name='noArea', areaType='none', distanceDiff=distanceDiffList, minDis=minDisList, areaSize=[0], intentionedDisToTarget=intentionedDisToTargetList)
 
     # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-    # policy = None
+
+    goal_Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+
     actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
     checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
     normalNoise = NormalNoise(noiseActionSpace, gridSize)
     sampleToZoneNoise = SampleToZoneNoise(noiseActionSpace)
 
-    # goal_Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
-
     initPrior = [0.5, 0.5]
 
     # softmaxBeta = 2.5
-    # goalPolicy = SoftmaxGoalPolicy(goal_Q_dict, softmaxBeta)
     priorBeta = 5
 
     commitBetaList = np.arange(1, 10, 1)
@@ -100,9 +99,10 @@ def main():
     print(softmaxBetaList)
 
     for softmaxBeta in softmaxBetaList:
+        # goalPolicy = SoftmaxGoalPolicy(goal_Q_dict, softmaxBeta)
         # policy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
         # for commitBeta in commitBetaList:
-        for i in range(33):
+        for i in range(30):
             print(i)
             expDesignValues = [[b, h, d] for b in width for h in height for d in intentionDis]
             numExpTrial = len(expDesignValues)
@@ -134,9 +134,13 @@ def main():
             gamma = 0.99
             goalReward = 10
             runModel = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
-            sampleAction = SampleSoftmaxAction(softmaxBeta)
-            normalTrial = NormalTrialOnline(sampleAction, drawNewState, drawText, normalNoise, checkBoundary)
-            specialTrial = SpecialTrialOnline(sampleAction, drawNewState, drawText, sampleToZoneNoise, checkBoundary)
+            # controller = SampleSoftmaxAction(softmaxBeta)
+
+            renderOn = 1
+
+            controller = AvoidCommitModel(goal_Q_dict, softmaxBeta, actionSpace, checkBoundary)
+            normalTrial = NormalTrialOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, renderOn)
+            specialTrial = SpecialTrialOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, renderOn)
 
             experimentValues = co.OrderedDict()
             experimentValues["name"] = "softmaxBetaGoal" + str(softmaxBeta) + '_' + str(i)

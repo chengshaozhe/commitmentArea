@@ -91,9 +91,12 @@ def main():
         noiseDesignValues = np.array([random.choice(noiseCondition) for _ in range(blockNumber)]).flatten().tolist()
         noiseDesignValues.append('special')
 
-        policy = pickle.load(open(os.path.join(machinePolicyPath , "noise0.1WolfToTwoSheepGird15_policy.pkl"), "rb"))
+        policy = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1WolfToTwoSheepGird15_policy.pkl"), "rb"))
         softmaxBeta = 2.5
-        modelController = ModelController(policy, gridSize, softmaxBeta)
+        # modelController = ModelController(policy, gridSize, softmaxBeta)
+
+        modelController = AvoidCommitModel(policy, softmaxBeta)
+
         controller = modelController
 
         checkBoundary = CheckBoundary([0, gridSize - 1], [0, gridSize - 1])
@@ -108,6 +111,7 @@ def main():
         writer = WriteDataFrameToCSV(writerPath)
         experiment = Experiment(normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
         experiment(noiseDesignValues, conditionList)
+
 
 if __name__ == "__main__":
     main()

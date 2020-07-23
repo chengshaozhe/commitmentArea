@@ -143,13 +143,17 @@ class CalculateActionInformation:
         return cumulatedInfoList
 
 
-def calPosterior(goalPosteriorList):
+def calPosteriorByInterpolation(goalPosteriorList, xInterpolation):
     x = np.divide(np.arange(len(goalPosteriorList) + 1), len(goalPosteriorList))
     goalPosteriorList.append(1)
     y = np.array(goalPosteriorList)
     f = interp1d(x, y, kind='nearest')
-    xnew = np.linspace(0., 1., 30)
-    goalPosterior = f(xnew)
+    goalPosterior = f(xInterpolation)
+    return goalPosterior
+
+
+def calPosteriorByChosenSteps(goalPosteriorList, xnew):
+    goalPosterior = np.array(goalPosteriorList)[xnew]
     return goalPosterior
 
 
@@ -186,11 +190,9 @@ class CalFirstIntentionStepRatio:
 
 if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "numGoal1noise0.1commitAreaGird15reward10gamma0.9_policy.pkl"), "rb"))
+    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "numGoal1noise0.1commitAreaGird15reward10_policy.pkl"), "rb"))
     # Q_dict_base = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
 
-    softmaxBeta = 0.5
-    softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
     # basePolicy = BasePolicy(Q_dict_base, softmaxBeta)
     initPrior = [0.5, 0.5]
     inferThreshold = 0.95
@@ -228,15 +230,12 @@ if __name__ == '__main__':
     statDFList = []
 
     commitBetaList = np.arange(1, 10, 2)
-    commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
+    # commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
     # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
-
-    participants = ['human', 'softmaxBetaRL5', 'earlyInentionSoftmaxBeta7']
-
+    participants = ['human', 'softmaxBetaEarly20', 'softmaxBetaRL20']
     for participant in participants:
-
-        softmaxBeta = 5
+        softmaxBeta = 20
         softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
         goalInfernce = GoalInfernce(initPrior, softmaxPolicy)
 
@@ -253,11 +252,14 @@ if __name__ == '__main__':
 
         df['firstIntentionStepRatio'] = df.apply(lambda x: calFirstIntentionStepRatio(x['goalPosteriorList']), axis=1)
 
-        df['goalPosterior'] = df.apply(lambda x: calPosterior(x['goalPosteriorList']), axis=1)
         # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
-        dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        # dfExpTrail = df[(df['areaType'] == 'rect')]
+        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        dfExpTrail = df[(df['areaType'] == 'rect')]
+
+        xnew = np.linspace(0., 1., 15)
+        # xnew = np.array([1, 3, 5, 7])
+        dfExpTrail['goalPosterior'] = dfExpTrail.apply(lambda x: calPosteriorByInterpolation(x['goalPosteriorList'], xnew), axis=1)
 
         # dfExpTrail = df[(df['areaType'] == 'rect') | (df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
 
@@ -316,18 +318,17 @@ if __name__ == '__main__':
     pvalus = np.array([ttest_ind(statDFList[0][i], statDFList[1][i])[1] for i in range(statDFList[0].shape[0])])
     # pvalus = np.array([mannwhitneyu(statDFList[0][i], statDFList[1][i])[1] for i in range(statDFList[0].shape[0])])
 
-    sigArea = np.where(pvalus < 0.05)[0]
-    print(sigArea)
+    # sigArea = np.where(pvalus < 0.05)[0]
+    # print(sigArea)
 
     # print(mannwhitneyu(statDFList[0], statDFList[1]))
     # print(ranksums(statDFList[0], statDFList[1]))
 
     lables = participants
-    lables = ['Human', 'Early Intention Agent']
+    lables = ['Human', 'Early Intention Agent', 'RL Agent']
 
-    xnew = np.linspace(0., 1., 30)
-    xnewSig = xnew[sigArea]
-    ySig = [stats[sigArea] for stats in statsList]
+    # xnewSig = xnew[sigArea]
+    # ySig = [stats[sigArea] for stats in statsList]
 
     lineWidth = 3
     for i in range(len(statsList)):
@@ -349,13 +350,13 @@ if __name__ == '__main__':
     # plt.xticks(x, xlabels)
     # plt.ylim((0, 1.1))
 
-    fontSize = 16
+    fontSize = 12
     plt.legend(loc='best', fontsize=fontSize)
     plt.xlabel('Time', fontsize=fontSize, color='black')
     plt.ylabel('Probability of Intention', fontsize=fontSize, color='black')
 
     plt.xticks(fontsize=fontSize, color='black')
     plt.yticks(fontsize=fontSize, color='black')
-
+    plt.ylim((0.5, 1))
     plt.title('Inferred Intention Through Time', fontsize=fontSize, color='black')
     plt.show()

@@ -1,6 +1,8 @@
 import numpy as np
 import pygame as pg
 import random
+from scipy.stats import ttest_ind, entropy
+from sklearn.metrics import normalized_mutual_info_score as KL
 
 
 def calculateGridDis(grid1, grid2):
@@ -419,3 +421,81 @@ class ModelControllerOnline:
 
         aimePlayerGrid = tuple(np.add(playerGrid, action))
         return aimePlayerGrid, action
+
+
+def calculateInformationGain(conditionProb, baseProb):
+    infoGain = entropy(baseProb) - entropy(conditionProb)
+    return infoGain
+
+
+def calculateKL(goalLikelihood, rlLikelihood):
+    KLD = np.log(goalLikelihood / rlLikelihood)
+    return KLD
+
+
+class CommitModelController:
+    def __init__(self, Q_dict, goal_Q_dict, softmaxBeta):
+        self.Q_dict = Q_dict
+        self.goal_Q_dict = goal_Q_dict
+        self.softmaxBeta = softmaxBeta
+        self.actionSpace = actionSpace
+
+    def __call__(self, playerGrid, targetGrid1, targetGrid2, goalPrior):
+        actionInformationList = []
+        for aimAction in self.actionSpace:
+            aimNextState = tuple(np.add(playerGrid, aimAction))
+            nextState = self.checkBoundary(aimNextState)
+
+            rlActionDict = self.Q_dict[(nextState, tuple(sorted((targetGrid1, targetGrid2))))]
+            rlLikelihood = rlActionDict[aimAction]
+
+            goalActionDictA = self.goal_Q_dict[(nextState, targetGrid1)]
+            goalLikelihoodA = goalActionDictA[aimAction]
+
+            goalActionDictB = self.goal_Q_dict[(nextState, targetGrid2)]
+            goalLikelihoodB = goalActionDictB[aimAction]
+
+            actionInformation = calculateKL(goalLikelihoodA, rlLikelihood) + calculateKL(goalLikelihoodB, rlLikelihood)
+
+            actionInformationList.append(actionInformation)
+
+        action = self.actionSpace[np.argmin(actionInformationList)]
+        aimePlayerGrid = self.checkBoundary((tuple(np.add(playerGrid, action))))
+
+        return aimePlayerGrid, action
+
+
+class AvoidCommitModel:
+    def __init__(self, goal_Q_dict, softmaxBeta, actionSpace, checkBoundary):
+        self.goal_Q_dict = goal_Q_dict
+        self.softmaxBeta = softmaxBeta
+        self.actionSpace = actionSpace
+        self.checkBoundary = checkBoundary
+
+    def __call__(self, Q_dict, playerGrid, targetGrid1, targetGrid2):
+        actionInformationList = []
+        for aimAction in self.actionSpace:
+            aimNextState = tuple(np.add(playerGrid, aimAction))
+
+            nextState = self.checkBoundary(aimNextState)
+            # rlActionDict = Q_dict[(nextState, tuple(sorted((targetGrid1, targetGrid2))))]
+            rlActionDict = Q_dict[(nextState, (targetGrid1, targetGrid2))]
+
+            rlActionValues = list(rlActionDict.values())
+            softmaxRLPolicy = calculateSoftmaxProbability(rlActionValues, self.softmaxBeta)
+
+            goalActionDictA = self.goal_Q_dict[(nextState, targetGrid1)]
+            goalActionValues = list(goalActionDictA.values())
+            goalAPolicy = calculateSoftmaxProbability(goalActionValues, self.softmaxBeta)
+
+            goalActionDictB = self.goal_Q_dict[(nextState, targetGrid2)]
+            goalActionValuesB = list(goalActionDictB.values())
+            goalBPolicy = calculateSoftmaxProbability(goalActionValuesB, self.softmaxBeta)
+
+            actionInformation = KL(goalAPolicy, softmaxRLPolicy)
+            actionInformationList.append(actionInformation)
+
+        print(actionInformationList)
+        action = self.actionSpace[np.argmin(actionInformationList)]
+        aimPlayerGrid = self.checkBoundary((tuple(np.add(playerGrid, action))))
+        return aimPlayerGrid, action

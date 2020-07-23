@@ -335,12 +335,13 @@ def calBIC(logLikelihood):
 
 if __name__ == '__main__':
     machinePolicyPath = os.path.abspath(os.path.join(os.path.join(os.getcwd(), os.pardir), 'machinePolicy'))
-    softmaxBeta = 2.5
-    goal_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGoalGird15_policy.pkl"), "rb"))
+
+    softmaxBeta = 5
+    goal_dict = pickle.load(open(os.path.join(machinePolicyPath, "numGoal1noise0.1commitAreaGird15reward10_policy.pkl"), "rb"))
     goalPolicy = GoalPolicy(goal_dict, softmaxBeta)
 
-    Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
-    RLPolicy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
+    # Q_dict = pickle.load(open(os.path.join(machinePolicyPath, "noise0.1commitAreaGird15_policy.pkl"), "rb"))
+    # RLPolicy = SoftmaxRLPolicy(Q_dict, softmaxBeta)
 
     # playerGrid, target1, target2 = [(3, 3), (6, 4), (4, 6)]
     # p = list(goalPolicy(playerGrid, target1).values())
@@ -357,7 +358,7 @@ if __name__ == '__main__':
 
     aimAction = [(0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (-1, 0), (0, 1), (0, 1), (0, 1)]
     target1, target2 = (6, 13), (4, 11)
-    calLogLikelihood = CalRLLikelihood(RLPolicy)
+    # calLogLikelihood = CalRLLikelihood(RLPolicy)
 
     avoidCommitWithMidpiontPolicy = AvoidCommitWithMidpiontPolicy(goalPolicy)
     avoidCommitPolicy = AvoidCommitPolicy(goalPolicy)
@@ -392,7 +393,7 @@ if __name__ == '__main__':
     df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] == 'special')]
     # df = df[(df['areaType'] == 'expRect') | (df['areaType'] == 'rect')]
 
-    df['likelihood1'] = df.apply(lambda x: calLogLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
+    # df['likelihood1'] = df.apply(lambda x: calLogLikelihood(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
     df['likelihood2'] = df.apply(lambda x: calImmediateIntentionLh(eval(x['trajectory']), eval(x['aimAction']), eval(x['target1']), eval(x['target2'])), axis=1)
 
@@ -447,7 +448,7 @@ if __name__ == '__main__':
     plt.ylabel('BIC')
     plt.legend(loc='best')
     plt.title('commit to goal ratio')  # Intention Consistency
-<<<<<<< HEAD
+<< << << < HEAD
     plt.show()
 
     samples = random.sample(range(len(df['likelihood2'])), numOfSamples)
@@ -475,8 +476,8 @@ if __name__ == '__main__':
     print(bic3)
     print(bic4)
     print(bic5)
-=======
-    # plt.show()
+== == == =
+# plt.show()
     bicList = []
     bic2List = []
     bic3List = []
@@ -533,4 +534,4 @@ if __name__ == '__main__':
     # plt.xticks(x, xlabels)
     # plt.title('Model comparison')
     # plt.show()
->>>>>>> 0ded78c415091f2f5d060a40e1505e687e471508
+>>>>>> > 0ded78c415091f2f5d060a40e1505e687e471508

@@ -47,11 +47,11 @@ class ModelExperiment():
         for trialIndex, condition in enumerate(conditionList):
             playerGrid, bean1Grid, bean2Grid, chooseConditionDF = self.samplePositionFromCondition(condition)
             goals = tuple((bean1Grid, bean2Grid))
-            model = self.runModel(goals)
+            Q_dict = self.runModel(goals)
             if isinstance(noiseDesignValues[trialIndex], int):
-                results = self.normalTrial(model, bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
+                results = self.normalTrial(Q_dict, bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
             else:
-                results = self.specialTrial(model, bean1Grid, bean2Grid, playerGrid)
+                results = self.specialTrial(Q_dict, bean1Grid, bean2Grid, playerGrid)
 
             results["noiseNumber"] = noiseDesignValues[trialIndex]
             results["playerGrid"] = chooseConditionDF['playerGrid']

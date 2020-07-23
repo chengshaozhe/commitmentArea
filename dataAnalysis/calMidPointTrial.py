@@ -150,8 +150,8 @@ if __name__ == '__main__':
         nubOfSubj = len(df["name"].unique())
         print(participant, nubOfSubj)
 
-        # df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        df = df[(df['areaType'] == 'rect')]
+        df = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        # df = df[(df['areaType'] == 'rect')]
         # df = df[(df['areaType'] != 'none')]
 
         # print(len(df))
@@ -179,7 +179,9 @@ if __name__ == '__main__':
         # statDF['firstIntentionStepRatio'] = dfExpTrail.groupby('name')["firstIntentionStepRatio"].mean()
         # statDF['goalPosterior'] = dfExpTrail.groupby('name')["goalPosterior"].mean()
 
-        statDF['midTriaPercent'] = df.groupby('name')["hasMidPoint"].sum() / (len(df) / len(df.groupby('name')["hasMidPoint"]))
+        # statDF['midTriaPercent'] = df.groupby('name')["hasMidPoint"].sum() / (len(df) / len(df.groupby('name')["hasMidPoint"]))
+
+        statDF['midTriaPercent'] = df.groupby('name')["hasMidPoint"].sum() / df.groupby('name')["hasMidPoint"].count()
 
         # print(df.groupby('name')["hasMidPoint"].head(6))
 
