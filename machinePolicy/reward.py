@@ -116,7 +116,7 @@ class GetLikelihoodRewardFunction:
         return(rewardFunction)
 
     def mergeRewards(self, reward1, reward2):
-        mergedReward = {state: {action: {nextState: reward1[state][action][nextState] - reward2[state][action][nextState]
+        mergedReward = {state: {action: {nextState: reward1[state][action][nextState] + reward2[state][action][nextState]
                                          for nextState in reward2[state][action].keys()}
                                 for action in reward2[state].keys()}
                         for state in reward2.keys()}

@@ -95,7 +95,7 @@ def main():
 
     rewardVarianceList = [50]
     softmaxBetaList = np.round(np.arange(0.4, 0.5, 0.01), decimals=2)
-    softmaxBetaList = [5]
+    softmaxBetaList = [10]
     print(softmaxBetaList)
 
     for softmaxBeta in softmaxBetaList:

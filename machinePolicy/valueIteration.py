@@ -416,7 +416,7 @@ def getQDict(targetA, targetB):
     Q_dictA, transitionTable, rewardA = runModel(targetA)
     Q_dictB, transitionTable, rewardB = runModel(targetB)
 
-    softmaxBeta = 5
+    softmaxBeta = 10
     getPolicyA = SoftmaxGoalPolicy(Q_dictA, softmaxBeta)
     getPolicyB = SoftmaxGoalPolicy(Q_dictB, softmaxBeta)
     policyA = {state: getPolicyA(state, targetA) for state in transitionTable.keys()}
@@ -425,7 +425,7 @@ def getQDict(targetA, targetB):
     # print(rewardA[(1, 1)][(0, 1)].keys())
     environment1Policies = {'a': policyA, 'b': policyB}
 
-    infoScale = 5
+    infoScale = -1
     getLikelihoodRewardFunction = GetLikelihoodRewardFunction(transitionTable, environment1Policies, infoScale)
     trueGoal = 'a'
     infoRewardA = getLikelihoodRewardFunction(trueGoal, rewardA)

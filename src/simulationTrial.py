@@ -308,7 +308,7 @@ class NormalTrialOnline():
         while pause:
             if self.renderOn:
                 self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
-
+                pg.time.wait(500)
             aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid)
             # aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
             # aimPlayerGrid = tuple(np.add(realPlayerGrid, aimAction))
@@ -358,6 +358,7 @@ class SpecialTrialOnline():
         while pause:
             if self.renderOn:
                 self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
+                pg.time.wait(500)
 
             aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid)
             # aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
