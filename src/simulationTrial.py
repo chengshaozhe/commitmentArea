@@ -18,6 +18,25 @@ def creatRect(coor1, coor2):
     return rect
 
 
+def calculateAvoidCommitmnetZoneAll(playerGrid, target1, target2):
+    rect1 = creatRect(playerGrid, target1)
+    rect2 = creatRect(playerGrid, target2)
+    avoidCommitmentZone = list(set(rect1).intersection(set(rect2)))
+    avoidCommitmentZone.remove(tuple(playerGrid))
+    return avoidCommitmentZone
+
+
+def calMidPoints(initPlayerGrid, target1, target2):
+    zone = calculateAvoidCommitmnetZoneAll(initPlayerGrid, target1, target2)
+    if zone:
+        playerDisToZoneGrid = [calculateGridDis(initPlayerGrid, zoneGrid) for zoneGrid in zone]
+        midPointIndex = np.argmax(playerDisToZoneGrid)
+        midPoint = zone[midPointIndex]
+    else:
+        midPoint = []
+    return midPoint
+
+
 def calculateAvoidCommitmnetZone(playerGrid, target1, target2):
     dis1 = calculateGridDis(playerGrid, target1)
     dis2 = calculateGridDis(playerGrid, target2)
@@ -192,6 +211,7 @@ class NormalTrialWithGoal():
         priorList = self.initPrior
         realPlayerGrid = initialPlayerGrid
         pause = True
+
         while pause:
             # self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
             aimPlayerGrid, aimAction = self.controller(realPlayerGrid, bean1Grid, bean2Grid, priorList)
@@ -291,7 +311,7 @@ class NormalTrialOnline():
         self.checkBoundary = checkBoundary
         self.renderOn = renderOn
 
-    def __call__(self, Q_dict, bean1Grid, bean2Grid, playerGrid, designValues):
+    def __call__(self, Q_dictList, bean1Grid, bean2Grid, playerGrid, designValues):
         initialPlayerGrid = playerGrid
         initialTime = time.get_ticks()
         reactionTime = list()
@@ -305,11 +325,28 @@ class NormalTrialOnline():
 
         realPlayerGrid = initialPlayerGrid
         pause = True
+
+        midpoint = calMidPoints(initialPlayerGrid, bean1Grid, bean2Grid)
+        disToMidPoint = calculateGridDis(initialPlayerGrid, midpoint)
+        avoidCommitQDicts, commitQDicts = Q_dictList
+        target = random.choice([bean1Grid, bean2Grid])
+
         while pause:
             if self.renderOn:
                 self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
                 pg.time.wait(500)
+            # commited = isCommitted(realPlayerGrid, bean1Grid, bean2Grid)
+
+            commitStep = random.randint(int(disToMidPoint / 2), disToMidPoint)
+            commited = 1 if stepCount >= commitStep else 0
+            if commited:
+                Q_dict = commitQDicts[target]
+            else:
+                target = random.choice([bean1Grid, bean2Grid])
+                Q_dict = avoidCommitQDicts[target]
+
             aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid)
+
             # aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
             # aimPlayerGrid = tuple(np.add(realPlayerGrid, aimAction))
 
@@ -339,7 +376,7 @@ class SpecialTrialOnline():
         self.checkBoundary = checkBoundary
         self.renderOn = renderOn
 
-    def __call__(self, Q_dict, bean1Grid, bean2Grid, playerGrid):
+    def __call__(self, Q_dictList, bean1Grid, bean2Grid, playerGrid):
         initialPlayerGrid = playerGrid
         initialTime = time.get_ticks()
         reactionTime = list()
@@ -355,12 +392,26 @@ class SpecialTrialOnline():
         avoidCommitmentZone = calculateAvoidCommitmnetZone(initialPlayerGrid, bean1Grid, bean2Grid)
         pause = True
         realPlayerGrid = initialPlayerGrid
+        midpoint = calMidPoints(initialPlayerGrid, bean1Grid, bean2Grid)
+        disToMidPoint = calculateGridDis(initialPlayerGrid, midpoint)
+        avoidCommitQDicts, commitQDicts = Q_dictList
+        target = random.choice([bean1Grid, bean2Grid])
+
         while pause:
             if self.renderOn:
                 self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
                 pg.time.wait(500)
+            # commited = isCommitted(realPlayerGrid, bean1Grid, bean2Grid)
+            commitStep = random.randint(int(disToMidPoint / 2), disToMidPoint)
+            commited = 1 if stepCount >= commitStep else 0
+            if commited:
+                Q_dict = commitQDicts[target]
+            else:
+                target = random.choice([bean1Grid, bean2Grid])
+                Q_dict = avoidCommitQDicts[target]
 
             aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid)
+
             # aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
 
             goal = inferGoal(realPlayerGrid, aimPlayerGrid, bean1Grid, bean2Grid)

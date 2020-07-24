@@ -372,14 +372,14 @@ class RunVI:
         R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
                              for a in A] for s in S])
 
-        valueIteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100, terminals=goalStates)
+        valueIteration = ValueIteration(gamma, epsilon=0.001, max_iter=100, terminals=goalStates)
         V = valueIteration(S, A, T, R)
 
         V_arr = V_dict_to_array(V, S)
         Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
         Q_dict = {(s, goalStates): {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
 
-        return Q_dict, T, R
+        return S, A, T, R, gamma, Q_dict
 
 
 def calculateSoftmaxProbability(acionValues, beta):
@@ -403,54 +403,59 @@ class SoftmaxGoalPolicy:
         return softMaxActionDict
 
 
-def getQDict(targetA, targetB):
+class RunIntentionModel:
+    def __init__(self, runVI, softmaxBeta, intentionInfoScale):
+        self.softmaxBeta = softmaxBeta
+        self.runVI = runVI
+        self.intentionInfoScale = intentionInfoScale
 
+    def __call__(self, targetA, targetB):
+        S, A, transitionTable, rewardA, gamma, Q_dictA = self.runVI(targetA)
+        S, A, transitionTable, rewardB, gamma, Q_dictB = self.runVI(targetB)
+        getPolicyA = SoftmaxGoalPolicy(Q_dictA, self.softmaxBeta)
+        getPolicyB = SoftmaxGoalPolicy(Q_dictB, self.softmaxBeta)
+        policyA = {state: getPolicyA(state, targetA) for state in transitionTable.keys()}
+        policyB = {state: getPolicyB(state, targetB) for state in transitionTable.keys()}
+        environmentPolicies = {'a': policyA, 'b': policyB}
+
+        Q_dictList = []
+        for intentionInfoScale in self.intentionInfoScale:
+            getLikelihoodRewardFunction = GetLikelihoodRewardFunction(transitionTable, environmentPolicies, intentionInfoScale)
+
+            infoRewardA = getLikelihoodRewardFunction('a', rewardA)
+            infoRewardB = getLikelihoodRewardFunction('b', rewardB)
+
+            runValueIterationA = ValueIteration(gamma, epsilon=0.001, max_iter=100, terminals=targetA)
+            runValueIterationB = ValueIteration(gamma, epsilon=0.001, max_iter=100, terminals=targetB)
+
+            V_A = runValueIterationA(S, A, transitionTable, infoRewardA)
+            V_B = runValueIterationB(S, A, transitionTable, infoRewardB)
+
+            for V, R in zip([V_A, V_B], [infoRewardA, infoRewardB]):
+                V_arr = V_dict_to_array(V, S)
+                T = transitionTable
+
+                T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
+                                     for a in A] for s in S])
+                R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
+                                     for a in A] for s in S])
+                Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
+                Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
+                Q_dictList.append(Q_dict)
+
+        avoidCommitQDicts = {targetA: Q_dictList[0], targetB: Q_dictList[1]}
+        commitQDicts = {targetA: Q_dictList[2], targetB: Q_dictList[3]}
+        return [avoidCommitQDicts, commitQDicts]
+
+
+if __name__ == '__main__':
     gridSize = 15
     noise = 0.1
     gamma = 0.9
     goalReward = 10
     actionSpace = [(0, -1), (0, 1), (-1, 0), (1, 0)]
     noiseActionSpace = [(0, -2), (0, 2), (-2, 0), (2, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)]
-    runModel = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
 
-    Q_dictA, transitionTable, rewardA = runModel(targetA)
-    Q_dictB, transitionTable, rewardB = runModel(targetB)
-
-    softmaxBeta = 10
-    getPolicyA = SoftmaxGoalPolicy(Q_dictA, softmaxBeta)
-    getPolicyB = SoftmaxGoalPolicy(Q_dictB, softmaxBeta)
-    policyA = {state: getPolicyA(state, targetA) for state in transitionTable.keys()}
-    policyB = {state: getPolicyB(state, targetB) for state in transitionTable.keys()}
-
-    # print(rewardA[(1, 1)][(0, 1)].keys())
-    environment1Policies = {'a': policyA, 'b': policyB}
-
-    infoScale = -1
-    getLikelihoodRewardFunction = GetLikelihoodRewardFunction(transitionTable, environment1Policies, infoScale)
-    trueGoal = 'a'
-    infoRewardA = getLikelihoodRewardFunction(trueGoal, rewardA)
-
-    runValueIteration = ValueIteration(gamma, epsilon=0.0001, max_iter=100, terminals=targetA)
-    S = tuple(it.product(range(gridSize), range(gridSize)))
-
-    V = runValueIteration(S, actionSpace, transitionTable, infoRewardA)
-
-    V_arr = V_dict_to_array(V, S)
-    T = transitionTable
-    A = actionSpace
-    R = infoRewardA
-    T_arr = np.asarray([[[T[s][a].get(s_n, 0) for s_n in S]
-                         for a in A] for s in S])
-    R_arr = np.asarray([[[R[s][a].get(s_n, 0) for s_n in S]
-                         for a in A] for s in S])
-
-    Q = V_to_Q(V=V_arr, T=T_arr, R=R_arr, gamma=gamma)
-    Q_dict = {s: {a: Q[si, ai] for (ai, a) in enumerate(A)} for (si, s) in enumerate(S)}
-
-    return Q_dict
-
-
-if __name__ == '__main__':
     targetA = (10, 10)
     targetB = (8, 8)
     Q_dict = getQDict(targetA, targetB)

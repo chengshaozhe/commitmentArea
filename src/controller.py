@@ -494,7 +494,6 @@ class AvoidCommitModel:
             actionInformation = calculateKL(goalAPolicy, softmaxRLPolicy)
             actionInformationList.append(actionInformation)
 
-        print(actionInformationList)
         action = self.actionSpace[np.argmin(actionInformationList)]
         aimPlayerGrid = self.checkBoundary((tuple(np.add(playerGrid, action))))
         return aimPlayerGrid, action

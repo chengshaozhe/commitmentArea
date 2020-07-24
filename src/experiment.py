@@ -47,10 +47,7 @@ class RLModelExperiment():
         for trialIndex, condition in enumerate(conditionList):
             playerGrid, bean1Grid, bean2Grid, chooseConditionDF = self.samplePositionFromCondition(condition)
             goals = tuple((bean1Grid, bean2Grid))
-            # Q_dict = self.runModel(goals)
-            from machinePolicy.valueIteration import getQDict
-
-            Q_dict = getQDict(bean1Grid, bean2Grid)
+            Q_dict = self.runModel(goals)
 
             if isinstance(noiseDesignValues[trialIndex], int):
                 results = self.normalTrial(Q_dict, bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
@@ -86,13 +83,12 @@ class CommitModelExperiment():
     def __call__(self, noiseDesignValues, conditionList):
         for trialIndex, condition in enumerate(conditionList):
             playerGrid, bean1Grid, bean2Grid, chooseConditionDF = self.samplePositionFromCondition(condition)
-            goals = tuple((bean1Grid, bean2Grid))
-            Q_dict = self.runModel(goals)
+            Q_dictList = self.runModel(bean1Grid, bean2Grid)
 
             if isinstance(noiseDesignValues[trialIndex], int):
-                results = self.normalTrial(Q_dict, bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
+                results = self.normalTrial(Q_dictList, bean1Grid, bean2Grid, playerGrid, noiseDesignValues[trialIndex])
             else:
-                results = self.specialTrial(Q_dict, bean1Grid, bean2Grid, playerGrid)
+                results = self.specialTrial(Q_dictList, bean1Grid, bean2Grid, playerGrid)
 
             results["noiseNumber"] = noiseDesignValues[trialIndex]
             results["playerGrid"] = chooseConditionDF['playerGrid']

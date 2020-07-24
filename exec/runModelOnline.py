@@ -17,7 +17,7 @@ from src.controller import AvoidCommitModel, SampleSoftmaxAction, ModelControlle
 from src.simulationTrial import NormalTrialOnline, SpecialTrialOnline, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
 from src.experiment import RLModelExperiment, CommitModelExperiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
-from machinePolicy.valueIteration import RunVI
+from machinePolicy.valueIteration import RunVI, RunIntentionModel
 
 
 def main():
@@ -131,9 +131,12 @@ def main():
 
     # model simulation
             noise = 0.1
-            gamma = 0.99
+            gamma = 0.9
             goalReward = 10
-            runModel = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
+            runVI = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
+
+            intentionInfoScale = [-1, 1]
+            runModel = RunIntentionModel(runVI, softmaxBeta, intentionInfoScale)
 
             controller = SampleSoftmaxAction(softmaxBeta)
 
@@ -152,7 +155,7 @@ def main():
             writerPath = os.path.join(resultsDirPath, experimentValues["name"] + '.csv')
             writer = WriteDataFrameToCSV(writerPath)
 
-            experiment = RLModelExperiment(runModel, normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
+            experiment = CommitModelExperiment(runModel, normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
             experiment(noiseDesignValues, conditionList)
 
 
