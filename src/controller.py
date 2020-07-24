@@ -27,11 +27,8 @@ def inferGoal(originGrid, aimGrid, targetGridA, targetGridB):
 
 
 def calculateSoftmaxProbability(acionValues, beta):
-
     expont = np.multiply(beta, acionValues)
-    # expont = [min(500, i) for i in np.multiply(beta, acionValues)]
     newProbabilityList = list(np.divide(np.exp(expont), np.sum(np.exp(expont))))
-
     return newProbabilityList
 
 
@@ -89,7 +86,9 @@ class SampleSoftmaxAction:
             softmaxProbabilityList = calculateSoftmaxProbability(actionValues, self.softmaxBeta)
             action = actionKeys[
                 list(np.random.multinomial(1, softmaxProbabilityList)).index(1)]
-        return action
+
+        aimPlayerGrid = tuple(np.add(playerGrid, action))
+        return aimPlayerGrid, action
 
 
 class NormalNoise():
@@ -492,7 +491,7 @@ class AvoidCommitModel:
             goalActionValuesB = list(goalActionDictB.values())
             goalBPolicy = calculateSoftmaxProbability(goalActionValuesB, self.softmaxBeta)
 
-            actionInformation = KL(goalAPolicy, softmaxRLPolicy)
+            actionInformation = calculateKL(goalAPolicy, softmaxRLPolicy)
             actionInformationList.append(actionInformation)
 
         print(actionInformationList)

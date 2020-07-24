@@ -309,9 +309,9 @@ class NormalTrialOnline():
             if self.renderOn:
                 self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
 
-            # aimAction = self.controller(Q_dict, realPlayerGrid)
-            aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
-            aimPlayerGrid = tuple(np.add(realPlayerGrid, aimAction))
+            aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid)
+            # aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
+            # aimPlayerGrid = tuple(np.add(realPlayerGrid, aimAction))
 
             goal = inferGoal(realPlayerGrid, aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)
@@ -359,8 +359,8 @@ class SpecialTrialOnline():
             if self.renderOn:
                 self.drawNewState(bean1Grid, bean2Grid, realPlayerGrid)
 
-            # aimAction = self.controller(Q_dict, realPlayerGrid)
-            aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
+            aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid)
+            # aimPlayerGrid, aimAction = self.controller(Q_dict, realPlayerGrid, bean1Grid, bean2Grid)
 
             goal = inferGoal(realPlayerGrid, aimPlayerGrid, bean1Grid, bean2Grid)
             goalList.append(goal)

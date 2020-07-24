@@ -15,7 +15,7 @@ from src.writer import WriteDataFrameToCSV
 from src.visualization import InitializeScreen, DrawBackground, DrawNewState, DrawImage, DrawText
 from src.controller import AvoidCommitModel, SampleSoftmaxAction, ModelController, NormalNoise, AwayFromTheGoalNoise, CheckBoundary, backToZoneNoise, SampleToZoneNoise, AimActionWithNoise, InferGoalPosterior, ModelControllerWithGoal, ModelControllerOnlineReward, SoftmaxRLPolicy, SoftmaxGoalPolicy
 from src.simulationTrial import NormalTrialOnline, SpecialTrialOnline, NormalTrialWithGoal, SpecialTrialWithGoal, NormalTrialRewardOnline, SpecialTrialRewardOnline
-from src.experiment import ModelExperiment
+from src.experiment import RLModelExperiment, CommitModelExperiment
 from src.design import CreatExpCondition, SamplePositionFromCondition, createNoiseDesignValue, createExpDesignValue
 from machinePolicy.valueIteration import RunVI
 
@@ -134,11 +134,12 @@ def main():
             gamma = 0.99
             goalReward = 10
             runModel = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
-            # controller = SampleSoftmaxAction(softmaxBeta)
+
+            controller = SampleSoftmaxAction(softmaxBeta)
 
             renderOn = 1
 
-            controller = AvoidCommitModel(goal_Q_dict, softmaxBeta, actionSpace, checkBoundary)
+            # controller = AvoidCommitModel(goal_Q_dict, Q_dict, softmaxBeta, actionSpace)
             normalTrial = NormalTrialOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, renderOn)
             specialTrial = SpecialTrialOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, renderOn)
 
@@ -151,7 +152,7 @@ def main():
             writerPath = os.path.join(resultsDirPath, experimentValues["name"] + '.csv')
             writer = WriteDataFrameToCSV(writerPath)
 
-            experiment = ModelExperiment(runModel, normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
+            experiment = RLModelExperiment(runModel, normalTrial, specialTrial, writer, experimentValues, samplePositionFromCondition, drawImage, resultsPath)
             experiment(noiseDesignValues, conditionList)
 
 
