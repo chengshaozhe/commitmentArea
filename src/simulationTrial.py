@@ -33,7 +33,7 @@ def calMidPoints(initPlayerGrid, target1, target2):
         midPointIndex = np.argmax(playerDisToZoneGrid)
         midPoint = zone[midPointIndex]
     else:
-        midPoint = []
+        midPoint = initPlayerGrid
     return midPoint
 
 
@@ -329,7 +329,7 @@ class NormalTrialOnline():
         midpoint = calMidPoints(initialPlayerGrid, bean1Grid, bean2Grid)
         disToMidPoint = calculateGridDis(initialPlayerGrid, midpoint)
         avoidCommitQDicts, commitQDicts = Q_dictList
-        target = random.choice([bean1Grid, bean2Grid])
+        target = chooseGoal(playerGrid, bean1Grid, bean2Grid)
 
         while pause:
             if self.renderOn:
@@ -339,6 +339,7 @@ class NormalTrialOnline():
 
             commitStep = random.randint(int(disToMidPoint / 2), disToMidPoint)
             commited = 1 if stepCount >= commitStep else 0
+
             if commited:
                 Q_dict = commitQDicts[target]
             else:
@@ -395,7 +396,7 @@ class SpecialTrialOnline():
         midpoint = calMidPoints(initialPlayerGrid, bean1Grid, bean2Grid)
         disToMidPoint = calculateGridDis(initialPlayerGrid, midpoint)
         avoidCommitQDicts, commitQDicts = Q_dictList
-        target = random.choice([bean1Grid, bean2Grid])
+        target = chooseGoal(playerGrid, bean1Grid, bean2Grid)
 
         while pause:
             if self.renderOn:
@@ -404,6 +405,7 @@ class SpecialTrialOnline():
             # commited = isCommitted(realPlayerGrid, bean1Grid, bean2Grid)
             commitStep = random.randint(int(disToMidPoint / 2), disToMidPoint)
             commited = 1 if stepCount >= commitStep else 0
+
             if commited:
                 Q_dict = commitQDicts[target]
             else:

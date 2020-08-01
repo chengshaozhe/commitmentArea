@@ -233,7 +233,7 @@ if __name__ == '__main__':
     # commitBetaStr = ['commitBeta' + str(commitBeta) for commitBeta in commitBetaList]
 
     # participants = ['human', 'softmaxBeta2.5'] + commitBetaStr
-    participants = ['human', 'softmaxBetaEarly20', 'softmaxBetaRL20']
+    participants = ['human', 'softmaxBetaEarly20', 'softmaxBetaRL20','commitModelSoftmaxBeta10','showcommitModelSoftmaxBeta10']
     for participant in participants:
         softmaxBeta = 20
         softmaxPolicy = SoftmaxPolicy(Q_dict, softmaxBeta)
@@ -254,8 +254,8 @@ if __name__ == '__main__':
 
         # df['goalPosterior'] = df.apply(lambda x: calInfo(x['expectedInfoList']), axis=1)
 
-        # dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
-        dfExpTrail = df[(df['areaType'] == 'rect')]
+        dfExpTrail = df[(df['areaType'] == 'expRect') & (df['noiseNumber'] != 'special')]
+        # dfExpTrail = df[(df['areaType'] == 'rect')]
 
         xnew = np.linspace(0., 1., 15)
         # xnew = np.array([1, 3, 5, 7])
@@ -325,7 +325,7 @@ if __name__ == '__main__':
     # print(ranksums(statDFList[0], statDFList[1]))
 
     lables = participants
-    lables = ['Human', 'Early Intention Agent', 'RL Agent']
+    lables = ['Human', 'Early Intention Agent', 'RL Agent', 'Hide then Show', 'Show']
 
     # xnewSig = xnew[sigArea]
     # ySig = [stats[sigArea] for stats in statsList]

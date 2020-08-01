@@ -126,8 +126,8 @@ def main():
             noiseDesignValues = createNoiseDesignValue(noiseCondition, blockNumber)
 
     # deubg
-            conditionList = [expCondition] * 27
-            noiseDesignValues = ['special'] * 27
+            # conditionList = [expCondition] * 27
+            # noiseDesignValues = ['special'] * 27
 
     # model simulation
             noise = 0.1
@@ -135,20 +135,20 @@ def main():
             goalReward = 10
             runVI = RunVI(gridSize, actionSpace, noiseActionSpace, noise, gamma, goalReward)
 
-            intentionInfoScale = [-1, 1]
+            intentionInfoScale = [-0.025, 0.025]
             runModel = RunIntentionModel(runVI, softmaxBeta, intentionInfoScale)
 
             controller = SampleSoftmaxAction(softmaxBeta)
 
-            renderOn = 1
+            renderOn = 0
 
             # controller = AvoidCommitModel(goal_Q_dict, Q_dict, softmaxBeta, actionSpace)
             normalTrial = NormalTrialOnline(controller, drawNewState, drawText, normalNoise, checkBoundary, renderOn)
             specialTrial = SpecialTrialOnline(controller, drawNewState, drawText, sampleToZoneNoise, checkBoundary, renderOn)
 
             experimentValues = co.OrderedDict()
-            experimentValues["name"] = "softmaxBetaGoal" + str(softmaxBeta) + '_' + str(i)
-            resultsDirPath = os.path.join(resultsPath, "softmaxBetaGoal" + str(softmaxBeta))
+            experimentValues["name"] = "hide0.025commitModelSoftmaxBeta" + str(softmaxBeta) + '_' + str(i)
+            resultsDirPath = os.path.join(resultsPath, "hide0.025commitModelSoftmaxBeta" + str(softmaxBeta))
 
             if not os.path.exists(resultsDirPath):
                 os.makedirs(resultsDirPath)
